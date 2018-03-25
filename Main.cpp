@@ -65,7 +65,7 @@ void normal(int tindx) {
 	nx = y1*(z2-z3) + y2*(z3-z1) + y3*(z1-z2);
 	ny = z1*(x2-x3) + z2*(x3-x1) + z3*(x1-x2);
 	nz = x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2);
-	glNormal3f(nx, ny, nz);
+	glNormal3f(-nx, -ny, -nz);
 }
 
 //----------draw a floor plane-------------------
@@ -109,7 +109,7 @@ void drawPyramid() {
 //--This is the main display module containing function calls for generating
 //--the scene.
 void display() {
-	float lpos[4] = {100., 100., 100., 1.0};  //light's position
+	float lpos[4] = {400.0, 100.0, -200.0, 1.0};  //light's position
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);    //GL_LINE = Wireframe;   GL_FILL = Solid
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -150,7 +150,7 @@ void initialize() {
 
 	cam_x = -50;
 	cam_y = 30;
-	cam_z = -200;
+	cam_z = -250;
 	cam_angle = 45.0*TO_RAD
 }
 
