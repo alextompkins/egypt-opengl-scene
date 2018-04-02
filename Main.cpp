@@ -267,7 +267,6 @@ void drawFloor() {
 void drawFloor() {
 	//glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glEnable(GL_TEXTURE_2D);
-
 	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
 
 	glBegin(GL_QUADS);
@@ -317,85 +316,87 @@ void drawPyramid() {
 	v[18] = {1.2, 1, -0.25};
 	v[19] = {1.8, 1, -0.25};
 
-	glColor3f(0.8, 0.8, 0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texId[SANDSTONE_BRICK]);
+
 	glBegin(GL_QUADS);
 
 	// left face
 	normal(&v[0], &v[4], &v[5]);
-	glVertex3f(v[0].x, v[0].y, v[0].z);
-	glVertex3f(v[4].x, v[4].y, v[4].z);
-	glVertex3f(v[5].x, v[5].y, v[5].z);
-	glVertex3f(v[1].x, v[1].y, v[1].z);
+	glTexCoord2f(3, 0); glVertex3f(v[0].x, v[0].y, v[0].z);
+	glTexCoord2f(2, 2); glVertex3f(v[4].x, v[4].y, v[4].z);
+	glTexCoord2f(1, 2); glVertex3f(v[5].x, v[5].y, v[5].z);
+	glTexCoord2f(0, 0); glVertex3f(v[1].x, v[1].y, v[1].z);
 
 	// back face
 	normal(&v[1], &v[5], &v[6]);
-	glVertex3f(v[1].x, v[1].y, v[1].z);
-	glVertex3f(v[5].x, v[5].y, v[5].z);
-	glVertex3f(v[6].x, v[6].y, v[6].z);
-	glVertex3f(v[2].x, v[2].y, v[2].z);
+	glTexCoord2f(3, 0); glVertex3f(v[1].x, v[1].y, v[1].z);
+	glTexCoord2f(2, 2); glVertex3f(v[5].x, v[5].y, v[5].z);
+	glTexCoord2f(1, 2); glVertex3f(v[6].x, v[6].y, v[6].z);
+	glTexCoord2f(0, 0); glVertex3f(v[2].x, v[2].y, v[2].z);
 
 	// right face
 	normal(&v[2], &v[6], &v[7]);
-	glVertex3f(v[2].x, v[2].y, v[2].z);
-	glVertex3f(v[6].x, v[6].y, v[6].z);
-	glVertex3f(v[7].x, v[7].y, v[7].z);
-	glVertex3f(v[3].x, v[3].y, v[3].z);
+	glTexCoord2f(3, 0); glVertex3f(v[2].x, v[2].y, v[2].z);
+	glTexCoord2f(2, 2); glVertex3f(v[6].x, v[6].y, v[6].z);
+	glTexCoord2f(1, 2); glVertex3f(v[7].x, v[7].y, v[7].z);
+	glTexCoord2f(0, 0); glVertex3f(v[3].x, v[3].y, v[3].z);
 
 	// front face A //
 	normal(&v[0], &v[8], &v[10]);
-	glVertex3f(v[0].x, v[0].y, v[0].z);
-	glVertex3f(v[8].x, v[8].y, v[8].z);
-	glVertex3f(v[10].x, v[10].y, v[10].z);
-	glVertex3f(v[12].x, v[12].y, v[12].z);
+	glTexCoord2f(v[0].x, v[0].y); glVertex3f(v[0].x, v[0].y, v[0].z);
+	glTexCoord2f(v[8].x, v[8].y); glVertex3f(v[8].x, v[8].y, v[8].z);
+	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
+	glTexCoord2f(v[12].x, v[12].y); glVertex3f(v[12].x, v[12].y, v[12].z);
 	
 	// front face E //
 	normal(&v[9], &v[3], &v[13]);
-	glVertex3f(v[9].x, v[9].y, v[9].z);
-	glVertex3f(v[3].x, v[3].y, v[3].z);
-	glVertex3f(v[13].x, v[13].y, v[13].z);
-	glVertex3f(v[11].x, v[11].y, v[11].z);
+	glTexCoord2f(v[9].x, v[9].y); glVertex3f(v[9].x, v[9].y, v[9].z);
+	glTexCoord2f(v[3].x, v[3].y); glVertex3f(v[3].x, v[3].y, v[3].z);
+	glTexCoord2f(v[13].x, v[13].y); glVertex3f(v[13].x, v[13].y, v[13].z);
+	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
 
 	// front face B //
 	normal(&v[12], &v[10], &v[14]);
-	glVertex3f(v[12].x, v[12].y, v[12].z);
-	glVertex3f(v[10].x, v[10].y, v[10].z);
-	glVertex3f(v[14].x, v[14].y, v[14].z);
-	glVertex3f(v[4].x, v[4].y, v[4].z);
+	glTexCoord2f(v[12].x, v[12].y); glVertex3f(v[12].x, v[12].y, v[12].z);
+	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
+	glTexCoord2f(v[14].x, v[14].y); glVertex3f(v[14].x, v[14].y, v[14].z);
+	glTexCoord2f(v[4].x, v[4].y); glVertex3f(v[4].x, v[4].y, v[4].z);
 
 	// front face D //
 	normal(&v[11], &v[13], &v[7]);
-	glVertex3f(v[11].x, v[11].y, v[11].z);
-	glVertex3f(v[13].x, v[13].y, v[13].z);
-	glVertex3f(v[7].x, v[7].y, v[7].z);
-	glVertex3f(v[15].x, v[15].y, v[15].z);
+	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
+	glTexCoord2f(v[13].x, v[13].y); glVertex3f(v[13].x, v[13].y, v[13].z);
+	glTexCoord2f(v[7].x, v[7].y); glVertex3f(v[7].x, v[7].y, v[7].z);
+	glTexCoord2f(v[15].x, v[15].y); glVertex3f(v[15].x, v[15].y, v[15].z);
 
 	// front face C //
 	normal(&v[10], &v[11], &v[15]);
-	glVertex3f(v[10].x, v[10].y, v[10].z);
-	glVertex3f(v[11].x, v[11].y, v[11].z);
-	glVertex3f(v[15].x, v[15].y, v[15].z);
-	glVertex3f(v[14].x, v[14].y, v[14].z);
+	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
+	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
+	glTexCoord2f(v[15].x, v[15].y); glVertex3f(v[15].x, v[15].y, v[15].z);
+	glTexCoord2f(v[14].x, v[14].y); glVertex3f(v[14].x, v[14].y, v[14].z);
 
 	// entrance left wall //
 	normal(&v[8], &v[16], &v[18]);
-	glVertex3f(v[8].x, v[8].y, v[8].z);
-	glVertex3f(v[16].x, v[16].y, v[16].z);
-	glVertex3f(v[18].x, v[18].y, v[18].z);
-	glVertex3f(v[10].x, v[10].y, v[10].z);
+	glTexCoord2f(v[8].z, v[8].y); glVertex3f(v[8].x, v[8].y, v[8].z);
+	glTexCoord2f(v[16].z, v[16].y); glVertex3f(v[16].x, v[16].y, v[16].z);
+	glTexCoord2f(v[18].z, v[18].y); glVertex3f(v[18].x, v[18].y, v[18].z);
+	glTexCoord2f(v[10].z, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
 
 	// entrance right wall //
 	normal(&v[17], &v[9], &v[11]);
-	glVertex3f(v[17].x, v[17].y, v[17].z);
-	glVertex3f(v[9].x, v[9].y, v[9].z);
-	glVertex3f(v[11].x, v[11].y, v[11].z);
-	glVertex3f(v[19].x, v[19].y, v[19].z);
+	glTexCoord2f(v[17].z, v[17].y); glVertex3f(v[17].x, v[17].y, v[17].z);
+	glTexCoord2f(v[9].z, v[9].y); glVertex3f(v[9].x, v[9].y, v[9].z);
+	glTexCoord2f(v[11].z, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
+	glTexCoord2f(v[19].z, v[19].y); glVertex3f(v[19].x, v[19].y, v[19].z);
 
 	// entrance roof //
 	normal(&v[18], &v[19], &v[11]);
-	glVertex3f(v[18].x, v[18].y, v[18].z);
-	glVertex3f(v[19].x, v[19].y, v[19].z);
-	glVertex3f(v[11].x, v[11].y, v[11].z);
-	glVertex3f(v[10].x, v[10].y, v[10].z);
+	glTexCoord2f(v[18].x, v[18].z); glVertex3f(v[18].x, v[18].y, v[18].z);
+	glTexCoord2f(v[19].x, v[19].z); glVertex3f(v[19].x, v[19].y, v[19].z);
+	glTexCoord2f(v[11].x, v[11].z); glVertex3f(v[11].x, v[11].y, v[11].z);
+	glTexCoord2f(v[10].x, v[10].z); glVertex3f(v[10].x, v[10].y, v[10].z);
 
 	glEnd();
 }
