@@ -16,6 +16,20 @@ struct Vertex {
 	float z;
 };
 
+struct Door {
+	bool open = false;
+	bool opening = false;
+	bool closing = false;
+	float angle = 0;
+} door;
+
+struct MovingObject {
+	float x;
+	float y;
+	float z;
+	float angle;
+} cam;
+
 /*
 class Mesh {
 	private:
@@ -41,12 +55,9 @@ class Mesh {
 */
 
 //--Globals ---------------------------------------------------------------
-float *x, *y, *z;  //vertex coordinate arrays
-int *t1, *t2, *t3; //triangles
-int nvrt, ntri;    //total number of vertices and triangles
-
-float cam_x, cam_y, cam_z;
-float cam_angle = 0;
+const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
+const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
+const float BLACK[4] = {0.0, 0.0, 0.0, 1.0};
 
 GLuint texId[8];
 enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK };
@@ -262,6 +273,28 @@ void drawFloor() {
 	glDisable(GL_TEXTURE_2D);
 }
 
+void drawDoor() {
+	glTranslatef(0.15, 0, 0);
+	glRotatef(door.angle, 0, 1, 0);
+	glTranslatef(-0.15, 0, 0);
+
+	glPushMatrix();
+		glColor4f(0.8, 0.7, 0.3, 1);
+		glScalef(0.15, 0.5, 0.04);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	glPushMatrix();
+		glMaterialfv(GL_FRONT, GL_SPECULAR, BLACK);
+		glColor4f(0.15, 0.15, 0.15, 1);
+		glScalef(0.3, 1, 0.02);
+		glutSolidCube(1);
+		glMaterialfv(GL_FRONT, GL_SPECULAR, WHITE);
+	glPopMatrix();
+
+	glColor4f(1, 1, 1, 1);
+}
+
 void drawPyramid() {
 	Vertex v[20];
 
@@ -383,36 +416,95 @@ void drawPyramid() {
 	glTexCoord2f(v[10].x, v[10].z); glVertex3f(v[10].x, v[10].y, v[10].z);
 
 	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void drawPyramidion() {
+	glColor4f(0.8, 0.7, 0.3, 1);
+	glBegin(GL_TRIANGLES);
+	
+	Vertex v[5];
+
+	v[0] = {1.5, 3, 1.5};
+	v[1] = {1, 2, 1};
+	v[2] = {1, 2, 2};
+	v[3] = {2, 2, 2};
+	v[4] = {2, 2, 1};
+	
+	// left face
+	normal(&v[0], &v[2], &v[1]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+
+	// right face
+	normal(&v[0], &v[3], &v[2]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+
+	// back face
+	normal(&v[0], &v[4], &v[3]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+
+	// front face
+	normal(&v[0], &v[1], &v[4]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+	
+	glEnd();
+	glColor4f(1, 1, 1, 1);
 }
 
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
 void display() {
-	float lpos[4] = {-400.0, 100.0, 200.0, 1.0};  //light's position
+	float lpos[4] = {-1000.0, 500.0, 1000.0, 1.0};  //light's position
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);    //GL_LINE = Wireframe;   GL_FILL = Solid
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 
 	glLoadIdentity();
-	gluLookAt(cam_x, cam_y, cam_z, cam_x + cos(cam_angle), cam_y, cam_z + sin(cam_angle), 0, 1, 0);
+	gluLookAt(cam.x, cam.y, cam.z, cam.x + cos(cam.angle), cam.y, cam.z + sin(cam.angle), 0, 1, 0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lpos);   //set light position
 
-	drawFloor();
+	glPushMatrix();
+		glTranslatef(0, -2000, 0);
+		glScalef(5, 4, 5);
+		drawSkybox();
+	glPopMatrix();
+
+	glPushMatrix();
+		drawFloor();
+	glPopMatrix();
 
 	glPushMatrix();
 		glTranslatef(100, 0, -100);
 		glScalef(50, 50, 50);
 		glRotatef(90, 0, 1, 0);
 		glTranslatef(-1.5, 0, -1.5);
-		drawPyramid();
-	glPopMatrix();
 
-	glPushMatrix();
-		glTranslatef(0, -2000, 0);
-		glScalef(5, 4, 5);
-		drawSkybox();
+		// Left Door
+		glPushMatrix();
+			glTranslatef(1.35+0.001, 0.5-0.001, -0.15);
+			glScalef(-1, 1, 1);
+			drawDoor();
+		glPopMatrix();
+
+		// Right Door
+		glPushMatrix();
+			glTranslatef(1.65-0.001, 0.5-0.001, -0.15);
+			drawDoor();
+		glPopMatrix();
+
+		drawPyramidion();
+		drawPyramid();
 	glPopMatrix();
 
 	glFlush();
@@ -421,12 +513,22 @@ void display() {
 //------- Initialize OpenGL parameters -----------------------------------
 void initialize() {
 	loadGLTextures();
-	//loadMeshFile("./models/Pyramid.off");				//Specify mesh file name here
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);	//Background colour
 
 	glEnable(GL_LIGHTING);					//Enable OpenGL states
 	glEnable(GL_LIGHT0);
+
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
+
+	glMaterialfv(GL_FRONT, GL_SPECULAR, WHITE);
+	glMaterialf(GL_FRONT, GL_SHININESS, 50);
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, GREY);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, WHITE);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, WHITE);
+
+	glClearColor(0, 0, 0, 0);	//Background colour
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_NORMALIZE);
 
@@ -435,45 +537,82 @@ void initialize() {
 	gluPerspective(60, 1, 1, 10000);  //The camera view volume
 
 	// Set initial camera position & angle //
-	cam_x = -50;
-	cam_y = 30;
-	cam_z = -250;
-	cam_angle = 45.0*TO_RAD
+	cam.x = -50;
+	cam.y = 30;
+	cam.z = -250;
+	cam.angle = 45.0*TO_RAD
 }
 
 void special(int key, int x, int y) {
 	const float CHANGE_VIEW_ANGLE = 2.0;
 	const float MOVE_DISTANCE = 2.0;
 
+	// TODO remove debug
+	cout << cam.x << " " << cam.z << "\n";
+
 	switch (key) {
 		case GLUT_KEY_LEFT:
-			cam_angle -= CHANGE_VIEW_ANGLE * TO_RAD;
+			cam.angle -= CHANGE_VIEW_ANGLE * TO_RAD;
 			break;
 		case GLUT_KEY_RIGHT:
-			cam_angle += CHANGE_VIEW_ANGLE * TO_RAD;
+			cam.angle += CHANGE_VIEW_ANGLE * TO_RAD;
 			break;
 		case GLUT_KEY_UP:
-			cam_x += MOVE_DISTANCE * cos(cam_angle);
-			cam_z += MOVE_DISTANCE * sin(cam_angle);
+			cam.x += MOVE_DISTANCE * cos(cam.angle);
+			cam.z += MOVE_DISTANCE * sin(cam.angle);
 			break;
 		case GLUT_KEY_DOWN:
-			cam_x -= MOVE_DISTANCE * cos(cam_angle);
-			cam_z -= MOVE_DISTANCE * sin(cam_angle);
+			cam.x -= MOVE_DISTANCE * cos(cam.angle);
+			cam.z -= MOVE_DISTANCE * sin(cam.angle);
 			break;
 	}
+
 	glutPostRedisplay();
 }
 
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
 		case ' ':
-			cam_y++;
+			cam.y++;
 			break;
 		case 'x':
-			cam_y--;
+			cam.y--;
 			break;
 	}
 	glutPostRedisplay();
+}
+
+void moveDoors() {
+	const float DETECT_X_LOWER = -20, DETECT_X_UPPER = 60;
+	const float DETECT_Z_LOWER = -120, DETECT_Z_UPPER = -80;
+	const float OPEN_ANGLE = 80, CLOSED_ANGLE = 0;
+
+	if (door.opening) {
+		door.angle += 1;
+		if (door.angle >= OPEN_ANGLE) {
+			door.opening = false;
+			door.open = true;
+		}
+	} else if (door.closing) {
+		door.angle -= 1;
+		if (door.angle <= CLOSED_ANGLE) {
+			door.closing = false;
+			door.open = false;
+		}
+	} else if (cam.x > DETECT_X_LOWER && cam.x < DETECT_X_UPPER && cam.z > DETECT_Z_LOWER && cam.z < DETECT_Z_UPPER) {
+		if (!door.open) {
+			door.opening = true;
+		}
+	} else if (door.open) {
+		door.closing = true;
+	}
+};
+
+void timer(int value) {
+	moveDoors();
+
+	glutPostRedisplay();
+	glutTimerFunc(25, timer, 0);
 }
 
 //  ------- Main: Initialize glut window and register call backs -----------
@@ -487,6 +626,7 @@ int main(int argc, char** argv) {
 
 	glutSpecialFunc(special);
 	glutKeyboardFunc(keyboard);
+	glutTimerFunc(25, timer, 0);
 	glutDisplayFunc(display);
 	glutMainLoop();
 	return 0;
