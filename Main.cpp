@@ -10,6 +10,36 @@ using namespace std;
 #define GL_CLAMP_TO_EDGE 0x812F   //To get rid of seams between textures
 #define TO_RAD (3.14159265/180.0);  //Conversion from degrees to radians
 
+struct Vertex {
+	float x;
+	float y;
+	float z;
+};
+
+/*
+class Mesh {
+	private:
+		int numVerts;
+		int currentVert;
+		Vertex vertices[];
+	public:
+		explicit Mesh(int numVerts) {
+			currentVert = 0;
+			this->numVerts = numVerts;
+			this->vertices = new Vertex[numVerts];
+		}
+		int getNumVerts() {
+			return this->numVerts;
+		}
+		Vertex* getVerts() {
+			return this->vertices;
+		}
+		void addVert(Vertex vert) {
+			this->vertices[currentVert] = vert;
+		}
+};
+*/
+
 //--Globals ---------------------------------------------------------------
 float *x, *y, *z;  //vertex coordinate arrays
 int *t1, *t2, *t3; //triangles
@@ -18,8 +48,8 @@ int nvrt, ntri;    //total number of vertices and triangles
 float cam_x, cam_y, cam_z;
 float cam_angle = 0;
 
-GLuint texId[7];
-enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND };
+GLuint texId[8];
+enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK };
 
 void loadGLTextures()				// Load bitmaps And Convert To Textures
 {
@@ -77,9 +107,13 @@ void loadGLTextures()				// Load bitmaps And Convert To Textures
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glBindTexture(GL_TEXTURE_2D, texId[SANDSTONE_BRICK]);
+	loadTGA("textures/sandstone_brick.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 }
 
+/*
 //-- Loads mesh data in OFF format    -------------------------------------
 void loadMeshFile(const char* fname) {
 	ifstream fp_in;
@@ -119,12 +153,24 @@ void loadMeshFile(const char* fname) {
 	fp_in.close();
 	cout << " File successfully read." << endl;
 }
+*/
 
-//--Function to compute the normal vector of a triangle with index tindx ----------
-void normal(int tindx) {
-	float x1 = x[t1[tindx]], x2 = x[t2[tindx]], x3 = x[t3[tindx]];
-	float y1 = y[t1[tindx]], y2 = y[t2[tindx]], y3 = y[t3[tindx]];
-	float z1 = z[t1[tindx]], z2 = z[t2[tindx]], z3 = z[t3[tindx]];
+//--Function to compute the normal vector of a triangle from the given points ----------
+void normal(float x1, float y1, float z1,
+			float x2, float y2, float z2,
+			float x3, float y3, float z3) {
+	float nx, ny, nz;
+	nx = y1*(z2-z3) + y2*(z3-z1) + y3*(z1-z2);
+	ny = z1*(x2-x3) + z2*(x3-x1) + z3*(x1-x2);
+	nz = x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2);
+	glNormal3f(-nx, -ny, -nz);
+}
+
+void normal(Vertex *v1, Vertex *v2, Vertex *v3) {
+	float x1 = v1->x, y1 = v1->y, z1 = v1->z;
+	float x2 = v2->x, y2 = v2->y, z2 = v2->z;
+	float x3 = v3->x, y3 = v3->y, z3 = v3->z;
+
 	float nx, ny, nz;
 	nx = y1*(z2-z3) + y2*(z3-z1) + y3*(z1-z2);
 	ny = z1*(x2-x3) + z2*(x3-x1) + z3*(x1-x2);
@@ -134,6 +180,7 @@ void normal(int tindx) {
 
 void skybox(){
 	glEnable(GL_TEXTURE_2D);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	////////////////////// LEFT WALL ///////////////////////
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
@@ -218,32 +265,138 @@ void drawFloor() {
 */
 
 void drawFloor() {
+	//glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
 
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0, 16.0); glVertex3f(-400, 0, -400);
+		glTexCoord2f(0.0, 8.0); glVertex3f(-400, 0, -400);
 		glTexCoord2f(0.0, 0.0); glVertex3f(-400, 0, 400);
-		glTexCoord2f(16.0, 0.0); glVertex3f(400, 0, 400);
-		glTexCoord2f(16.0, 16.0); glVertex3f(400, 0, -400);
+		glTexCoord2f(8.0, 0.0); glVertex3f(400, 0, 400);
+		glTexCoord2f(8.0, 8.0); glVertex3f(400, 0, -400);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
 }
 
 void drawPyramid() {
-	glColor3f(0.8, 0.8, 0);
+	Vertex v[20];
 
-	//Construct the object model here using triangles read from OFF file
-	glBegin(GL_TRIANGLES);
-	for(int tindx = 0; tindx < ntri; tindx++)
-	{
-		normal(tindx);
-		glVertex3d(x[t1[tindx]], y[t1[tindx]], z[t1[tindx]]);
-		glVertex3d(x[t2[tindx]], y[t2[tindx]], z[t2[tindx]]);
-		glVertex3d(x[t3[tindx]], y[t3[tindx]], z[t3[tindx]]);
-	}
+	// Bottom Corners
+	v[0] = {0, 0, 0};
+	v[1] = {0, 0, 3};
+	v[2] = {3, 0, 3};
+	v[3] = {3, 0, 0};
+
+	// Roof Corners
+	v[4] = {1, 2, 1};
+	v[5] = {1, 2, 2};
+	v[6] = {2, 2, 2};
+	v[7] = {2, 2, 1};
+
+	// Front Face Bottom
+	v[8] = {1.2, 0, 0};
+	v[9] = {1.8, 0, 0};
+
+	// Front Face Mid
+	v[10] = {1.2, 1, 0.5};
+	v[11] = {1.8, 1, 0.5};
+	v[12] = {0.5, 1, 0.5};
+	v[13] = {2.5, 1, 0.5};
+
+	// Front Face Top
+	v[14] = {1.2, 2, 1};
+	v[15] = {1.8, 2, 1};
+
+	// Entrance Bottom
+	v[16] = {1.2, 0, -0.25};
+	v[17] = {1.8, 0, -0.25};
+
+	// Entrance Roof
+	v[18] = {1.2, 1, -0.25};
+	v[19] = {1.8, 1, -0.25};
+
+	glColor3f(0.8, 0.8, 0);
+	glBegin(GL_QUADS);
+
+	// left face
+	normal(&v[0], &v[4], &v[5]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+	glVertex3f(v[5].x, v[5].y, v[5].z);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+
+	// back face
+	normal(&v[1], &v[5], &v[6]);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+	glVertex3f(v[5].x, v[5].y, v[5].z);
+	glVertex3f(v[6].x, v[6].y, v[6].z);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+
+	// right face
+	normal(&v[2], &v[6], &v[7]);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+	glVertex3f(v[6].x, v[6].y, v[6].z);
+	glVertex3f(v[7].x, v[7].y, v[7].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+
+	// front face A //
+	normal(&v[0], &v[8], &v[10]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[8].x, v[8].y, v[8].z);
+	glVertex3f(v[10].x, v[10].y, v[10].z);
+	glVertex3f(v[12].x, v[12].y, v[12].z);
+	
+	// front face E //
+	normal(&v[9], &v[3], &v[13]);
+	glVertex3f(v[9].x, v[9].y, v[9].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+	glVertex3f(v[13].x, v[13].y, v[13].z);
+	glVertex3f(v[11].x, v[11].y, v[11].z);
+
+	// front face B //
+	normal(&v[12], &v[10], &v[14]);
+	glVertex3f(v[12].x, v[12].y, v[12].z);
+	glVertex3f(v[10].x, v[10].y, v[10].z);
+	glVertex3f(v[14].x, v[14].y, v[14].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+
+	// front face D //
+	normal(&v[11], &v[13], &v[7]);
+	glVertex3f(v[11].x, v[11].y, v[11].z);
+	glVertex3f(v[13].x, v[13].y, v[13].z);
+	glVertex3f(v[7].x, v[7].y, v[7].z);
+	glVertex3f(v[15].x, v[15].y, v[15].z);
+
+	// front face C //
+	normal(&v[10], &v[11], &v[15]);
+	glVertex3f(v[10].x, v[10].y, v[10].z);
+	glVertex3f(v[11].x, v[11].y, v[11].z);
+	glVertex3f(v[15].x, v[15].y, v[15].z);
+	glVertex3f(v[14].x, v[14].y, v[14].z);
+
+	// entrance left wall //
+	normal(&v[8], &v[16], &v[18]);
+	glVertex3f(v[8].x, v[8].y, v[8].z);
+	glVertex3f(v[16].x, v[16].y, v[16].z);
+	glVertex3f(v[18].x, v[18].y, v[18].z);
+	glVertex3f(v[10].x, v[10].y, v[10].z);
+
+	// entrance right wall //
+	normal(&v[17], &v[9], &v[11]);
+	glVertex3f(v[17].x, v[17].y, v[17].z);
+	glVertex3f(v[9].x, v[9].y, v[9].z);
+	glVertex3f(v[11].x, v[11].y, v[11].z);
+	glVertex3f(v[19].x, v[19].y, v[19].z);
+
+	// entrance roof //
+	normal(&v[18], &v[19], &v[11]);
+	glVertex3f(v[18].x, v[18].y, v[18].z);
+	glVertex3f(v[19].x, v[19].y, v[19].z);
+	glVertex3f(v[11].x, v[11].y, v[11].z);
+	glVertex3f(v[10].x, v[10].y, v[10].z);
+
 	glEnd();
 }
 
@@ -264,8 +417,10 @@ void display() {
 	drawFloor();
 
 	glPushMatrix();
-		glTranslatef(250, 0, 0);
-		glScalef(100, 200, 100);
+		glTranslatef(100, 0, -100);
+		glScalef(50, 50, 50);
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-1.5, 0, -1.5);
 		drawPyramid();
 	glPopMatrix();
 
@@ -281,7 +436,7 @@ void display() {
 //------- Initialize OpenGL parameters -----------------------------------
 void initialize() {
 	loadGLTextures();
-	loadMeshFile("./models/Pyramid.off");				//Specify mesh file name here
+	//loadMeshFile("./models/Pyramid.off");				//Specify mesh file name here
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);	//Background colour
 
 	glEnable(GL_LIGHTING);					//Enable OpenGL states
@@ -342,7 +497,7 @@ int main(int argc, char** argv) {
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_DEPTH);
 	glutInitWindowSize (1200, 720);
 	glutInitWindowPosition (10, 10);
-	glutCreateWindow ("Cannon");
+	glutCreateWindow ("Egypt (COSC363 Assignment - ato47)");
 	initialize();
 
 	glutSpecialFunc(special);
