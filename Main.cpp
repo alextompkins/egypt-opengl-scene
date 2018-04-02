@@ -178,9 +178,9 @@ void normal(Vertex *v1, Vertex *v2, Vertex *v3) {
 	glNormal3f(-nx, -ny, -nz);
 }
 
-void skybox(){
-	glEnable(GL_TEXTURE_2D);
+void drawSkybox(){
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glEnable(GL_TEXTURE_2D);
 
 	////////////////////// LEFT WALL ///////////////////////
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
@@ -241,9 +241,10 @@ void skybox(){
 }
 
 //----------draw a floor plane-------------------
-/*
 void drawFloor() {
-	bool flag = false;
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
 
 	glBegin(GL_QUADS);
 	glNormal3f(0, 1, 0);
@@ -251,31 +252,13 @@ void drawFloor() {
 	{
 		for(int z = -400; z <= 400; z += 20)
 		{
-			if(flag) glColor3f(0.6, 1.0, 0.8);
-			else glColor3f(0.8, 1.0, 0.6);
-			glVertex3f(x, 0, z);
-			glVertex3f(x, 0, z+20);
-			glVertex3f(x+20, 0, z+20);
-			glVertex3f(x+20, 0, z);
-			flag = !flag;
+			glTexCoord2f(0.0, 0.0); glVertex3f(x, 0, z);
+			glTexCoord2f(0.0, 1.0); glVertex3f(x, 0, z+20);
+			glTexCoord2f(1.0, 1.0); glVertex3f(x+20, 0, z+20);
+			glTexCoord2f(1.0, 0.0); glVertex3f(x+20, 0, z);
 		}
 	}
 	glEnd();
-}
-*/
-
-void drawFloor() {
-	//glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
-
-	glBegin(GL_QUADS);
-		glTexCoord2f(0.0, 8.0); glVertex3f(-400, 0, -400);
-		glTexCoord2f(0.0, 0.0); glVertex3f(-400, 0, 400);
-		glTexCoord2f(8.0, 0.0); glVertex3f(400, 0, 400);
-		glTexCoord2f(8.0, 8.0); glVertex3f(400, 0, -400);
-	glEnd();
-
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -316,6 +299,7 @@ void drawPyramid() {
 	v[18] = {1.2, 1, -0.25};
 	v[19] = {1.8, 1, -0.25};
 
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texId[SANDSTONE_BRICK]);
 
@@ -428,7 +412,7 @@ void display() {
 	glPushMatrix();
 		glTranslatef(0, -2000, 0);
 		glScalef(5, 4, 5);
-		skybox();
+		drawSkybox();
 	glPopMatrix();
 
 	glFlush();
@@ -458,7 +442,7 @@ void initialize() {
 }
 
 void special(int key, int x, int y) {
-	const float CHANGE_VIEW_ANGLE = 1.0;
+	const float CHANGE_VIEW_ANGLE = 2.0;
 	const float MOVE_DISTANCE = 2.0;
 
 	switch (key) {
