@@ -54,6 +54,8 @@ class Mesh {
 };
 */
 
+void drawCompletePyramid();
+
 //--Globals ---------------------------------------------------------------
 const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
 const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
@@ -421,9 +423,6 @@ void drawPyramid() {
 }
 
 void drawPyramidion() {
-	glColor4f(0.8, 0.7, 0.3, 1);
-	glBegin(GL_TRIANGLES);
-	
 	Vertex v[5];
 
 	v[0] = {1.5, 3, 1.5};
@@ -431,6 +430,9 @@ void drawPyramidion() {
 	v[2] = {1, 2, 2};
 	v[3] = {2, 2, 2};
 	v[4] = {2, 2, 1};
+
+	glColor4f(0.8, 0.7, 0.3, 1);
+	glBegin(GL_TRIANGLES);
 	
 	// left face
 	normal(&v[0], &v[2], &v[1]);
@@ -460,11 +462,79 @@ void drawPyramidion() {
 	glColor4f(1, 1, 1, 1);
 }
 
+void drawCompletePyramid() {
+	glTranslatef(100, 0, -100);
+	glScalef(50, 50, 50);
+	glRotatef(90, 0, 1, 0);
+	glTranslatef(-1.5, 0, -1.5); // to centre the pyramid
+
+	// Left Door
+	glPushMatrix();
+		glTranslatef(1.35+0.001, 0.5-0.001, -0.2);
+		glScalef(-1, 1, 1);
+		drawDoor();
+	glPopMatrix();
+
+	// Right Door
+	glPushMatrix();
+		glTranslatef(1.65-0.001, 0.5-0.001, -0.2);
+		drawDoor();
+	glPopMatrix();
+
+	drawPyramidion();
+	drawPyramid();
+}
+
+void drawShadowPyramid() {
+	Vertex v[5];
+	v[0] = {0, 3, 0};
+	v[1] = {-1.5, 0, -1.5};
+	v[2] = {-1.5, 0, 1.5};
+	v[3] = {1.5, 0, 1.5};
+	v[4] = {1.5, 0, -1.5};
+
+	glTranslatef(100, 0, -100);
+	glScalef(50, 50, 50);
+	glRotatef(90, 0, 1, 0);
+
+	glBegin(GL_TRIANGLES);
+
+	// left face
+	normal(&v[0], &v[2], &v[1]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+
+	// right face
+	normal(&v[0], &v[3], &v[2]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+	glVertex3f(v[2].x, v[2].y, v[2].z);
+
+	// back face
+	normal(&v[0], &v[4], &v[3]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+	glVertex3f(v[3].x, v[3].y, v[3].z);
+
+	// front face
+	normal(&v[0], &v[1], &v[4]);
+	glVertex3f(v[0].x, v[0].y, v[0].z);
+	glVertex3f(v[1].x, v[1].y, v[1].z);
+	glVertex3f(v[4].x, v[4].y, v[4].z);
+
+	glEnd();
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
 void display() {
-	float lpos[4] = {-1000.0, 500.0, 1000.0, 1.0};  //light's position
+	float lpos[4] = {-1000.0, 1000.0, 1000.0, 1.0};  //light's position
+	float shadowMat[16] = {
+			lpos[1], 0, 0, 0,	-lpos[0], 0, -lpos[2], -1,
+			0, 0, lpos[1], 0,	0, 0, 0, lpos[1]
+	};
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);    //GL_LINE = Wireframe;   GL_FILL = Solid
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -484,27 +554,18 @@ void display() {
 		drawFloor();
 	glPopMatrix();
 
+	glDisable(GL_LIGHTING);
 	glPushMatrix();
-		glTranslatef(100, 0, -100);
-		glScalef(50, 50, 50);
-		glRotatef(90, 0, 1, 0);
-		glTranslatef(-1.5, 0, -1.5);
+		glColor4f(0.15, 0.15, 0.15, 1.0);
+		glTranslatef(0, 0.01, 0);
+		glMultMatrixf(shadowMat);
+		drawShadowPyramid();
+		glColor4f(1, 1, 1, 0);
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
 
-		// Left Door
-		glPushMatrix();
-			glTranslatef(1.35+0.001, 0.5-0.001, -0.15);
-			glScalef(-1, 1, 1);
-			drawDoor();
-		glPopMatrix();
-
-		// Right Door
-		glPushMatrix();
-			glTranslatef(1.65-0.001, 0.5-0.001, -0.15);
-			drawDoor();
-		glPopMatrix();
-
-		drawPyramidion();
-		drawPyramid();
+	glPushMatrix();
+		drawCompletePyramid();
 	glPopMatrix();
 
 	glFlush();
