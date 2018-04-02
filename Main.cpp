@@ -3,9 +3,11 @@
 #include <climits>
 #include <math.h>
 #include <GL/freeglut.h>
+#include "loadTGA.h"
 using namespace std;
 
 // CONSTANTS //
+#define GL_CLAMP_TO_EDGE 0x812F   //To get rid of seams between textures
 #define TO_RAD (3.14159265/180.0);  //Conversion from degrees to radians
 
 //--Globals ---------------------------------------------------------------
@@ -15,6 +17,68 @@ int nvrt, ntri;    //total number of vertices and triangles
 
 float cam_x, cam_y, cam_z;
 float cam_angle = 0;
+
+GLuint texId[7];
+enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND };
+
+void loadGLTextures()				// Load bitmaps And Convert To Textures
+{
+	glGenTextures(7, texId); 		// Create texture ids
+	// *** left ***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
+	loadTGA("textures/skybox/left.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// *** front ***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_FRONT]);
+	loadTGA("textures/skybox/front.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// *** right ***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_RIGHT]);
+	loadTGA("textures/skybox/right.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// *** back***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_BACK]);
+	loadTGA("textures/skybox/back.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// *** top ***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_TOP]);
+	loadTGA("textures/skybox/top.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// *** down ***
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_BOTTOM]);
+	loadTGA("textures/skybox/down.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
+	loadTGA("textures/sand.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+}
 
 //-- Loads mesh data in OFF format    -------------------------------------
 void loadMeshFile(const char* fname) {
@@ -68,7 +132,69 @@ void normal(int tindx) {
 	glNormal3f(-nx, -ny, -nz);
 }
 
+void skybox(){
+	glEnable(GL_TEXTURE_2D);
+
+	////////////////////// LEFT WALL ///////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0, 0.0); glVertex3f(-1000,  0, 1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0., -1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 1000., -1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f(-1000, 1000, 1000);
+	glEnd();
+
+	////////////////////// FRONT WALL ///////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_FRONT]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0, 0.0); glVertex3f(-1000,  0, -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(1000, 0., -1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(1000, 1000, -1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f(-1000,  1000, -1000);
+	glEnd();
+
+	////////////////////// RIGHT WALL ///////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_RIGHT]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0, 0.0); glVertex3f(1000,  0, -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(1000, 0, 1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(1000, 1000,  1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f(1000,  1000,  -1000);
+	glEnd();
+
+
+	////////////////////// REAR WALL ////////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_BACK]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0, 0.0); glVertex3f( 1000, 0, 1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0,  1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 1000,  1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f( 1000, 1000, 1000);
+	glEnd();
+
+	/////////////////////// TOP //////////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_TOP]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0, 1.0); glVertex3f(-1000, 1000, -1000);
+		glTexCoord2f(1.0, 0.0); glVertex3f(1000, 1000,  -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(1000, 1000,  1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 1000, 1000);
+	glEnd();
+
+	/////////////////////// FLOOR //////////////////////////
+	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_BOTTOM]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0., 1000);
+		glTexCoord2f(1.0, 0.0); glVertex3f(1000, 0.,  1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f(1000, 0., -1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 0., -1000);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+}
+
 //----------draw a floor plane-------------------
+/*
 void drawFloor() {
 	bool flag = false;
 
@@ -88,6 +214,22 @@ void drawFloor() {
 		}
 	}
 	glEnd();
+}
+*/
+
+void drawFloor() {
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 16.0); glVertex3f(-400, 0, -400);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-400, 0, 400);
+		glTexCoord2f(16.0, 0.0); glVertex3f(400, 0, 400);
+		glTexCoord2f(16.0, 16.0); glVertex3f(400, 0, -400);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawPyramid() {
@@ -109,16 +251,17 @@ void drawPyramid() {
 //--This is the main display module containing function calls for generating
 //--the scene.
 void display() {
-	float lpos[4] = {400.0, 100.0, -200.0, 1.0};  //light's position
+	float lpos[4] = {-400.0, 100.0, 200.0, 1.0};  //light's position
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);    //GL_LINE = Wireframe;   GL_FILL = Solid
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
+
 	glLoadIdentity();
 	gluLookAt(cam_x, cam_y, cam_z, cam_x + cos(cam_angle), cam_y, cam_z + sin(cam_angle), 0, 1, 0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lpos);   //set light position
 
-	//glRotatef(angle, 0.0, 1.0, 0.0);		//rotate the whole scene
+	drawFloor();
 
 	glPushMatrix();
 		glTranslatef(250, 0, 0);
@@ -126,15 +269,18 @@ void display() {
 		drawPyramid();
 	glPopMatrix();
 
-	drawFloor();
-
-	//--start here
+	glPushMatrix();
+		glTranslatef(0, -2000, 0);
+		glScalef(5, 4, 5);
+		skybox();
+	glPopMatrix();
 
 	glFlush();
 }
 
 //------- Initialize OpenGL parameters -----------------------------------
 void initialize() {
+	loadGLTextures();
 	loadMeshFile("./models/Pyramid.off");				//Specify mesh file name here
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);	//Background colour
 
@@ -146,8 +292,9 @@ void initialize() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60, 1, 50, 1000);  //The camera view volume
+	gluPerspective(60, 1, 1, 10000);  //The camera view volume
 
+	// Set initial camera position & angle //
 	cam_x = -50;
 	cam_y = 30;
 	cam_z = -250;
