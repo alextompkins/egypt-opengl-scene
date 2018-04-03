@@ -456,6 +456,15 @@ void drawCompletePyramid() {
 		drawDoor();
 	glPopMatrix();
 
+	/*
+	glPushMatrix();
+		glDisable(GL_LIGHT0);
+		glScalef(0.99, 0.99, 0.99);
+		drawPyramid();
+		glEnable(GL_LIGHT0);
+	glPopMatrix();
+	*/
+
 	drawPyramidion();
 	drawPyramid();
 }
@@ -862,10 +871,9 @@ bool camWithinWalls() {
 }
 
 bool camWithinDoorwayWalls() {
-	return (cam.x > 10 && cam.x < 50 &&
-			((cam.z > -120 && cam.z < -110 || cam.z > -90 && cam.z < -80) ||
-			!door.open || door.closing)
-	);
+	return cam.x > 10 && cam.x < 50 &&
+		   ((cam.z > -120 && cam.z < -110 || cam.z > -90 && cam.z < -80) ||
+		    (cam.z > -110 && cam.z < -90) && (!door.open || door.closing));
 }
 
 void changeCamX(float amount) {
@@ -915,7 +923,7 @@ void special(int key, int x, int y) {
 	}
 
 	// TODO remove debug
-	cout << "x: " << cam.x << " z: " << cam.z << "\n";
+	//cout << "x: " << cam.x << " z: " << cam.z << "\n";
 
 	glutPostRedisplay();
 }
