@@ -7,8 +7,15 @@
 using namespace std;
 
 // CONSTANTS //
+
 #define GL_CLAMP_TO_EDGE 0x812F   //To get rid of seams between textures
 #define TO_RAD (3.14159265/180.0);  //Conversion from degrees to radians
+
+const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
+const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
+const float BLACK[4] = {0.0, 0.0, 0.0, 1.0};
+
+// STRUCTS //
 
 struct Vertex {
 	float x;
@@ -59,12 +66,8 @@ class Mesh {
 };
 */
 
-void drawCompletePyramid();
-
-//--Globals ---------------------------------------------------------------
-const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
-const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
-const float BLACK[4] = {0.0, 0.0, 0.0, 1.0};
+// GLOBALS //
+bool charCamEnabled = false;
 
 GLuint texId[8];
 enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK };
@@ -698,7 +701,12 @@ void display() {
 	glMatrixMode(GL_MODELVIEW);
 
 	glLoadIdentity();
-	gluLookAt(cam.x, cam.y, cam.z, cam.x + cos(cam.angle), cam.y, cam.z + sin(cam.angle), 0, 1, 0);
+	if (charCamEnabled) {
+		float angleInRads = camel.angle * TO_RAD;
+		gluLookAt(camel.x, camel.y + 15, camel.z, camel.x + 10000*sin(angleInRads), cam.y, cam.z + 10000*cos(angleInRads), 0, 1, 0);
+	} else {
+		gluLookAt(cam.x, cam.y, cam.z, cam.x + cos(cam.angle), cam.y, cam.z + sin(cam.angle), 0, 1, 0);
+	}
 	glLightfv(GL_LIGHT0, GL_POSITION, lpos);   //set light position
 
 	glPushMatrix();
@@ -786,18 +794,33 @@ void special(int key, int x, int y) {
 
 	switch (key) {
 		case GLUT_KEY_LEFT:
-			cam.angle -= CHANGE_VIEW_ANGLE * TO_RAD;
+			if (!charCamEnabled) {
+				cam.angle -= CHANGE_VIEW_ANGLE * TO_RAD;
+			}
 			break;
 		case GLUT_KEY_RIGHT:
-			cam.angle += CHANGE_VIEW_ANGLE * TO_RAD;
+			if (!charCamEnabled) {
+				cam.angle += CHANGE_VIEW_ANGLE * TO_RAD;
+			}
 			break;
 		case GLUT_KEY_UP:
-			cam.x += MOVE_DISTANCE * cos(cam.angle);
-			cam.z += MOVE_DISTANCE * sin(cam.angle);
+			if (!charCamEnabled) {
+				cam.x += MOVE_DISTANCE * cos(cam.angle);
+				cam.z += MOVE_DISTANCE * sin(cam.angle);
+			}
 			break;
 		case GLUT_KEY_DOWN:
-			cam.x -= MOVE_DISTANCE * cos(cam.angle);
-			cam.z -= MOVE_DISTANCE * sin(cam.angle);
+			if (!charCamEnabled) {
+				cam.x -= MOVE_DISTANCE * cos(cam.angle);
+				cam.z -= MOVE_DISTANCE * sin(cam.angle);
+			}
+			break;
+		case GLUT_KEY_F1:
+			if (charCamEnabled) {
+				charCamEnabled = false;
+			} else {
+				charCamEnabled = true;
+			}
 			break;
 	}
 
@@ -807,10 +830,14 @@ void special(int key, int x, int y) {
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
 		case ' ':
-			cam.y++;
+			if (!charCamEnabled) {
+				cam.y++;
+			}
 			break;
 		case 'x':
-			cam.y--;
+			if (!charCamEnabled) {
+				cam.y--;
+			}
 			break;
 	}
 	glutPostRedisplay();
@@ -869,7 +896,7 @@ void moveCamelLegs() {
 
 void moveCamel() {
 	const float MIN_ANGLE = 0;
-	const float MAX_ANGLE = 270;
+	const float MAX_ANGLE = 360;
 	const float ANGLE_CHANGE = 2;
 	const float CAMEL_MOVE = 0.5;
 
