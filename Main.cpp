@@ -895,32 +895,26 @@ void moveCamelLegs() {
 }
 
 void moveCamel() {
-	const float MIN_ANGLE = 0;
-	const float MAX_ANGLE = 360;
-	const float ANGLE_CHANGE = 2;
 	const float CAMEL_MOVE = 0.5;
 
-	static bool angleInc = true;
+	static float time;
+	float x_change, z_change, angle;
 
-	if (angleInc) {
-		camel.angle += ANGLE_CHANGE;
-		if (camel.angle >= MAX_ANGLE) {
-			angleInc = false;
-		}
-	} else {
-		camel.angle -= ANGLE_CHANGE;
-		if (camel.angle <= MIN_ANGLE) {
-			angleInc = true;
-		}
-	}
+	time += 0.01;
 
-	float angleInRads = camel.angle * TO_RAD;
+	x_change = sin(time);
+	z_change = cos(2*time);
+	angle = atan(x_change/z_change) / TO_RAD
+	/*if (angle < 0) {
+		angle = 180 - angle;
+	}*/
 
-	camel.x += CAMEL_MOVE * sin(angleInRads);
-	camel.z += CAMEL_MOVE * cos(angleInRads);
+	camel.x += CAMEL_MOVE * x_change;
+	camel.z += CAMEL_MOVE * z_change;
+	camel.angle = angle;
 
 	// TODO remove debug
-	cout << angleInc << " " << camel.angle << "\n";
+	cout << time << " " << camel.angle << "\n";
 }
 
 void timer(int value) {
