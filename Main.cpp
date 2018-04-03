@@ -852,28 +852,39 @@ void initialize() {
 	blMiddleRight.increasing = true;
 }
 
-/*
-void changeCamX(float amount) {
-	const float PYRAMID_BACK_X = 0, PYRAMID_FRONT_X = 0, PYRAMID_LEFT_Z = 0, PYRAMID_RIGHT_Z = 0;
+bool camWithinDoorway() {
+	return (cam.x > 10 && cam.x < 50 && cam.z > -115 && cam.z < -85);
+}
 
-	if (cam.x >= );
+bool camWithinWalls() {
+	return (cam.x > 25 && cam.x < 175 && cam.z > -175 && cam.z < -25) &&
+		   !(cam.x > 50 && cam.x < 150 && cam.z > -150 && cam.z < -50);
+}
+
+bool camWithinDoorwayWalls() {
+	return (cam.x > 10 && cam.x < 50 &&
+			((cam.z > -120 && cam.z < -110 || cam.z > -90 && cam.z < -80) ||
+			!door.open || door.closing)
+	);
+}
+
+void changeCamX(float amount) {
+	cam.x += amount;
+	if ((camWithinWalls() && !(camWithinDoorway())) || camWithinDoorwayWalls()) {
+		cam.x -= amount;
+	}
 }
 
 void changeCamZ(float amount) {
-	const float bound_z_lower = -14.0, bound_z_upper = 14.0;
-
-	if (cam.z + amount >= bound_z_lower && cam.z + amount <= bound_z_upper) {
-		cam.z += amount;
+	cam.z += amount;
+	if ((camWithinWalls() && !(camWithinDoorway())) || camWithinDoorwayWalls()) {
+		cam.z -= amount;
 	}
 }
-*/
 
 void special(int key, int x, int y) {
 	const float CHANGE_VIEW_ANGLE = 2.0;
 	const float MOVE_DISTANCE = 2.0;
-
-	// TODO remove debug
-	cout << cam.x << " " << cam.z << "\n";
 
 	switch (key) {
 		case GLUT_KEY_LEFT:
@@ -888,20 +899,23 @@ void special(int key, int x, int y) {
 			break;
 		case GLUT_KEY_UP:
 			if (!charCamEnabled) {
-				cam.x += MOVE_DISTANCE * cos(cam.angle);
-				cam.z += MOVE_DISTANCE * sin(cam.angle);
+				changeCamX(MOVE_DISTANCE * cos(cam.angle));
+				changeCamZ(MOVE_DISTANCE * sin(cam.angle));
 			}
 			break;
 		case GLUT_KEY_DOWN:
 			if (!charCamEnabled) {
-				cam.x -= MOVE_DISTANCE * cos(cam.angle);
-				cam.z -= MOVE_DISTANCE * sin(cam.angle);
+				changeCamX(-MOVE_DISTANCE * cos(cam.angle));
+				changeCamZ(-MOVE_DISTANCE * sin(cam.angle));
 			}
 			break;
 		case GLUT_KEY_F1:
 			charCamEnabled = !charCamEnabled;
 			break;
 	}
+
+	// TODO remove debug
+	cout << "x: " << cam.x << " z: " << cam.z << "\n";
 
 	glutPostRedisplay();
 }
