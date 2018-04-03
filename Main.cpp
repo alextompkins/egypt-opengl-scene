@@ -152,7 +152,7 @@ void loadGLTextures() {			// Load bitmaps And Convert To Textures
  * Function to compute the normal vector of a triangle from the given vertices
  * @param v1, v2, v3 the three vertices of the triangle
  */
-void normal(Vertex *v1, Vertex *v2, Vertex *v3) {
+void normal(Vertex *v1, Vertex *v2, Vertex *v3, bool reversed) {
 	float x1 = v1->x, y1 = v1->y, z1 = v1->z;
 	float x2 = v2->x, y2 = v2->y, z2 = v2->z;
 	float x3 = v3->x, y3 = v3->y, z3 = v3->z;
@@ -161,7 +161,16 @@ void normal(Vertex *v1, Vertex *v2, Vertex *v3) {
 	nx = y1*(z2-z3) + y2*(z3-z1) + y3*(z1-z2);
 	ny = z1*(x2-x3) + z2*(x3-x1) + z3*(x1-x2);
 	nz = x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2);
-	glNormal3f(-nx, -ny, -nz);
+
+	if (reversed) {
+		glNormal3f(nx, ny, nz);
+	} else {
+		glNormal3f(-nx, -ny, -nz);
+	}
+}
+
+void vertex(Vertex* v) {
+	glVertex3f(v->x, v->y, v->z);
 }
 
 void drawSkybox(){
@@ -272,7 +281,7 @@ void drawDoor() {
 	glColor4f(1, 1, 1, 1);
 }
 
-void drawPyramid() {
+void drawPyramid(bool reversed) {
 	Vertex v[20];
 
 	// Bottom Corners
@@ -316,77 +325,77 @@ void drawPyramid() {
 	glBegin(GL_QUADS);
 
 	// left face
-	normal(&v[0], &v[4], &v[5]);
-	glTexCoord2f(3, 0); glVertex3f(v[0].x, v[0].y, v[0].z);
-	glTexCoord2f(2, 2); glVertex3f(v[4].x, v[4].y, v[4].z);
-	glTexCoord2f(1, 2); glVertex3f(v[5].x, v[5].y, v[5].z);
-	glTexCoord2f(0, 0); glVertex3f(v[1].x, v[1].y, v[1].z);
+	normal(&v[0], &v[4], &v[5], reversed);
+	glTexCoord2f(3, 0); vertex(&v[0]);
+	glTexCoord2f(2, 2); vertex(&v[4]);
+	glTexCoord2f(1, 2); vertex(&v[5]);
+	glTexCoord2f(0, 0); vertex(&v[1]);
 
 	// back face
-	normal(&v[1], &v[5], &v[6]);
+	normal(&v[1], &v[5], &v[6], reversed);
 	glTexCoord2f(3, 0); glVertex3f(v[1].x, v[1].y, v[1].z);
 	glTexCoord2f(2, 2); glVertex3f(v[5].x, v[5].y, v[5].z);
 	glTexCoord2f(1, 2); glVertex3f(v[6].x, v[6].y, v[6].z);
 	glTexCoord2f(0, 0); glVertex3f(v[2].x, v[2].y, v[2].z);
 
 	// right face
-	normal(&v[2], &v[6], &v[7]);
+	normal(&v[2], &v[6], &v[7], reversed);
 	glTexCoord2f(3, 0); glVertex3f(v[2].x, v[2].y, v[2].z);
 	glTexCoord2f(2, 2); glVertex3f(v[6].x, v[6].y, v[6].z);
 	glTexCoord2f(1, 2); glVertex3f(v[7].x, v[7].y, v[7].z);
 	glTexCoord2f(0, 0); glVertex3f(v[3].x, v[3].y, v[3].z);
 
 	// front face A //
-	normal(&v[0], &v[8], &v[10]);
+	normal(&v[0], &v[8], &v[10], reversed);
 	glTexCoord2f(v[0].x, v[0].y); glVertex3f(v[0].x, v[0].y, v[0].z);
 	glTexCoord2f(v[8].x, v[8].y); glVertex3f(v[8].x, v[8].y, v[8].z);
 	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
 	glTexCoord2f(v[12].x, v[12].y); glVertex3f(v[12].x, v[12].y, v[12].z);
 	
 	// front face E //
-	normal(&v[9], &v[3], &v[13]);
+	normal(&v[9], &v[3], &v[13], reversed);
 	glTexCoord2f(v[9].x, v[9].y); glVertex3f(v[9].x, v[9].y, v[9].z);
 	glTexCoord2f(v[3].x, v[3].y); glVertex3f(v[3].x, v[3].y, v[3].z);
 	glTexCoord2f(v[13].x, v[13].y); glVertex3f(v[13].x, v[13].y, v[13].z);
 	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
 
 	// front face B //
-	normal(&v[12], &v[10], &v[14]);
+	normal(&v[12], &v[10], &v[14], reversed);
 	glTexCoord2f(v[12].x, v[12].y); glVertex3f(v[12].x, v[12].y, v[12].z);
 	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
 	glTexCoord2f(v[14].x, v[14].y); glVertex3f(v[14].x, v[14].y, v[14].z);
 	glTexCoord2f(v[4].x, v[4].y); glVertex3f(v[4].x, v[4].y, v[4].z);
 
 	// front face D //
-	normal(&v[11], &v[13], &v[7]);
+	normal(&v[11], &v[13], &v[7], reversed);
 	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
 	glTexCoord2f(v[13].x, v[13].y); glVertex3f(v[13].x, v[13].y, v[13].z);
 	glTexCoord2f(v[7].x, v[7].y); glVertex3f(v[7].x, v[7].y, v[7].z);
 	glTexCoord2f(v[15].x, v[15].y); glVertex3f(v[15].x, v[15].y, v[15].z);
 
 	// front face C //
-	normal(&v[10], &v[11], &v[15]);
+	normal(&v[10], &v[11], &v[15], reversed);
 	glTexCoord2f(v[10].x, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
 	glTexCoord2f(v[11].x, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
 	glTexCoord2f(v[15].x, v[15].y); glVertex3f(v[15].x, v[15].y, v[15].z);
 	glTexCoord2f(v[14].x, v[14].y); glVertex3f(v[14].x, v[14].y, v[14].z);
 
 	// entrance left wall //
-	normal(&v[8], &v[16], &v[18]);
+	normal(&v[8], &v[16], &v[18], reversed);
 	glTexCoord2f(v[8].z, v[8].y); glVertex3f(v[8].x, v[8].y, v[8].z);
 	glTexCoord2f(v[16].z, v[16].y); glVertex3f(v[16].x, v[16].y, v[16].z);
 	glTexCoord2f(v[18].z, v[18].y); glVertex3f(v[18].x, v[18].y, v[18].z);
 	glTexCoord2f(v[10].z, v[10].y); glVertex3f(v[10].x, v[10].y, v[10].z);
 
 	// entrance right wall //
-	normal(&v[17], &v[9], &v[11]);
+	normal(&v[17], &v[9], &v[11], reversed);
 	glTexCoord2f(v[17].z, v[17].y); glVertex3f(v[17].x, v[17].y, v[17].z);
 	glTexCoord2f(v[9].z, v[9].y); glVertex3f(v[9].x, v[9].y, v[9].z);
 	glTexCoord2f(v[11].z, v[11].y); glVertex3f(v[11].x, v[11].y, v[11].z);
 	glTexCoord2f(v[19].z, v[19].y); glVertex3f(v[19].x, v[19].y, v[19].z);
 
 	// entrance roof //
-	normal(&v[18], &v[19], &v[11]);
+	normal(&v[18], &v[19], &v[11], reversed);
 	glTexCoord2f(v[18].x, v[18].z); glVertex3f(v[18].x, v[18].y, v[18].z);
 	glTexCoord2f(v[19].x, v[19].z); glVertex3f(v[19].x, v[19].y, v[19].z);
 	glTexCoord2f(v[11].x, v[11].z); glVertex3f(v[11].x, v[11].y, v[11].z);
@@ -410,25 +419,25 @@ void drawPyramidion() {
 	glBegin(GL_TRIANGLES);
 	
 	// left face
-	normal(&v[0], &v[2], &v[1]);
+	normal(&v[0], &v[2], &v[1], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[2].x, v[2].y, v[2].z);
 	glVertex3f(v[1].x, v[1].y, v[1].z);
 
 	// right face
-	normal(&v[0], &v[3], &v[2]);
+	normal(&v[0], &v[3], &v[2], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[3].x, v[3].y, v[3].z);
 	glVertex3f(v[2].x, v[2].y, v[2].z);
 
 	// back face
-	normal(&v[0], &v[4], &v[3]);
+	normal(&v[0], &v[4], &v[3], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[4].x, v[4].y, v[4].z);
 	glVertex3f(v[3].x, v[3].y, v[3].z);
 
 	// front face
-	normal(&v[0], &v[1], &v[4]);
+	normal(&v[0], &v[1], &v[4], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[1].x, v[1].y, v[1].z);
 	glVertex3f(v[4].x, v[4].y, v[4].z);
@@ -461,12 +470,12 @@ void drawCompletePyramid() {
 		glDisable(GL_LIGHT0);
 		glTranslatef(0.03, 0, 0.01);
 		glScalef(0.98, 0.98, 0.98);
-		drawPyramid();
+		drawPyramid(true);
 		glEnable(GL_LIGHT0);
 	glPopMatrix();
 
 	drawPyramidion();
-	drawPyramid();
+	drawPyramid(false);
 }
 
 void drawShadowPyramid() {
@@ -484,25 +493,25 @@ void drawShadowPyramid() {
 	glBegin(GL_TRIANGLES);
 
 	// left face
-	normal(&v[0], &v[2], &v[1]);
+	normal(&v[0], &v[2], &v[1], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[2].x, v[2].y, v[2].z);
 	glVertex3f(v[1].x, v[1].y, v[1].z);
 
 	// right face
-	normal(&v[0], &v[3], &v[2]);
+	normal(&v[0], &v[3], &v[2], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[3].x, v[3].y, v[3].z);
 	glVertex3f(v[2].x, v[2].y, v[2].z);
 
 	// back face
-	normal(&v[0], &v[4], &v[3]);
+	normal(&v[0], &v[4], &v[3], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[4].x, v[4].y, v[4].z);
 	glVertex3f(v[3].x, v[3].y, v[3].z);
 
 	// front face
-	normal(&v[0], &v[1], &v[4]);
+	normal(&v[0], &v[1], &v[4], false);
 	glVertex3f(v[0].x, v[0].y, v[0].z);
 	glVertex3f(v[1].x, v[1].y, v[1].z);
 	glVertex3f(v[4].x, v[4].y, v[4].z);
