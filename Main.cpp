@@ -28,7 +28,12 @@ struct MovingObject {
 	float y;
 	float z;
 	float angle;
-} cam;
+} cam, camel;
+
+struct CamelLeg {
+	bool increasing = false;
+	float angle = 0;
+} clFrontLeft, clFrontRight, clBackLeft, clBackRight;
 
 /*
 class Mesh {
@@ -526,6 +531,158 @@ void drawShadowPyramid() {
 	glEnd();
 }
 
+void drawEye() {
+	glPushMatrix();
+		glColor4fv(WHITE);
+		glScalef(1, 1, 0.3);
+		glutSolidTorus(0.5, 1, 16, 16);
+	glPopMatrix();
+
+	glPushMatrix();
+		glColor4fv(BLACK);
+		glScalef(0.5, 0.5, 0.15);
+		glutSolidTorus(1, 1, 16, 16);
+	glPopMatrix();
+}
+
+void drawCamelLeg(CamelLeg* camelLeg) {
+	glScalef(1.5, 1, 1.5);
+
+	glTranslatef(0, 5, 0);
+	glRotatef(camelLeg->angle, 1, 0, 0);
+	glTranslatef(0, -5, 0);
+
+	// upper
+	glPushMatrix();
+		glColor4f(0.8, 0.7, 0.5, 1);
+		glScalef(1, 10, 1);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// top of hoof
+	glPushMatrix();
+		glColor4f(0.9, 0.85, 0.7, 1);
+		glTranslatef(0, -5, 0);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// bottom of hoof
+	glPushMatrix();
+		glColor4f(0.4, 0.3, 0.1, 1);
+		glTranslatef(0, -6, 0);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	glColor4f(0.8, 0.7, 0.5, 1);
+}
+
+void drawCamel() {
+	glColor4f(0.8, 0.7, 0.5, 1);
+
+	// TORSO //
+	// abdomen
+	glPushMatrix();
+		glScalef(6, 8, 10);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// hump
+	glPushMatrix();
+		glTranslatef(0, 3.5, -2);
+		glScalef(2.5, 5, 3);
+		glutSolidSphere(1, 16, 16);
+	glPopMatrix();
+
+	// NECK //
+	// lower neck
+	glPushMatrix();
+		glTranslatef(0, 0, 6.5);
+		glScalef(3, 4, 3);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// upper neck
+	glPushMatrix();
+		glTranslatef(0, 5, 7.25);
+		glScalef(2, 6, 1.5);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// HEAD //
+	// back of head
+	glPushMatrix();
+		glTranslatef(0, 10, 8);
+		glScalef(3, 4.5, 3);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// front of head
+	glPushMatrix();
+		glTranslatef(0, 9.5, 10.75);
+		glScalef(2, 3.5, 2.5);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// left eye
+	glPushMatrix();
+		glTranslatef(1.5, 10.5, 8.5);
+		glScalef(0.4, 0.4, 0.4);
+		glRotatef(90, 0, 1, 0);
+		drawEye();
+	glPopMatrix();
+
+	// right eye
+	glPushMatrix();
+		glTranslatef(-1.5, 10.5, 8.5);
+		glScalef(0.4, 0.4, 0.4);
+		glRotatef(-90, 0, 1, 0);
+		drawEye();
+	glPopMatrix();
+
+	glColor4f(0.5, 0.4, 0.25, 1);
+
+	// left ear
+	glPushMatrix();
+		glTranslatef(1.2, 12.5, 6.9);
+		glScalef(0.4, 1.5, 0.6);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// right ear
+	glPushMatrix();
+		glTranslatef(-1.2, 12.5, 6.9);
+		glScalef(0.4, 1.5, 0.6);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// LEGS //
+	// front left leg
+	glPushMatrix();
+		glTranslatef(2.25, -8, 4.25);
+		drawCamelLeg(&clFrontLeft);
+	glPopMatrix();
+
+	// front right leg
+	glPushMatrix();
+		glTranslatef(-2.25, -8, 4.25);
+		drawCamelLeg(&clFrontRight);
+	glPopMatrix();
+
+	// back left leg
+	glPushMatrix();
+		glTranslatef(2.25, -8, -4.25);
+		drawCamelLeg(&clBackLeft);
+	glPopMatrix();
+
+	// back right leg
+	glPushMatrix();
+		glTranslatef(-2.25, -8, -4.25);
+		drawCamelLeg(&clBackRight);
+	glPopMatrix();
+
+	glColor4fv(WHITE);
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
@@ -568,6 +725,12 @@ void display() {
 		drawCompletePyramid();
 	glPopMatrix();
 
+	glPushMatrix();
+		glTranslatef(camel.x, camel.y, camel.z);
+		glRotatef(camel.angle, 0, 1, 0);
+		drawCamel();
+	glPopMatrix();
+
 	glFlush();
 }
 
@@ -597,11 +760,21 @@ void initialize() {
 	glLoadIdentity();
 	gluPerspective(60, 1, 1, 10000);  //The camera view volume
 
-	// Set initial camera position & angle //
+	// Set camera's initial position & angle //
 	cam.x = -50;
 	cam.y = 30;
 	cam.z = -250;
 	cam.angle = 45.0*TO_RAD
+
+	// Set camel's initial position & angle
+	camel.x = 0;
+	camel.y = 15;
+	camel.z = -200;
+	camel.angle = -90;
+
+	// Setup camel legs to swing alternately
+	clFrontLeft.increasing = true;
+	clBackRight.increasing = true;
 }
 
 void special(int key, int x, int y) {
@@ -609,7 +782,7 @@ void special(int key, int x, int y) {
 	const float MOVE_DISTANCE = 2.0;
 
 	// TODO remove debug
-	cout << cam.x << " " << cam.z << "\n";
+	//cout << cam.x << " " << cam.z << "\n";
 
 	switch (key) {
 		case GLUT_KEY_LEFT:
@@ -669,8 +842,64 @@ void moveDoors() {
 	}
 };
 
+void moveCamelLegs() {
+	const float LEG_ANGLE_LOWER = -14, LEG_ANGLE_UPPER = 14;
+	const float LEG_ANGLE_CHANGE = 2;
+
+	CamelLeg* legs[4] = {&clFrontLeft, &clFrontRight, &clBackLeft, &clBackRight};
+	CamelLeg* leg;
+
+	for (int i = 0; i < 4; i++) {
+		leg = legs[i];
+		if (leg->increasing) {
+			if (leg->angle < LEG_ANGLE_UPPER) {
+				leg->angle += LEG_ANGLE_CHANGE;
+			} else {
+				leg->increasing = false;
+			}
+		} else {
+			if (leg->angle > LEG_ANGLE_LOWER) {
+				leg->angle -= LEG_ANGLE_CHANGE;
+			} else {
+				leg->increasing = true;
+			}
+		}
+	}
+}
+
+void moveCamel() {
+	const float MIN_ANGLE = 0;
+	const float MAX_ANGLE = 270;
+	const float ANGLE_CHANGE = 2;
+	const float CAMEL_MOVE = 0.5;
+
+	static bool angleInc = true;
+
+	if (angleInc) {
+		camel.angle += ANGLE_CHANGE;
+		if (camel.angle >= MAX_ANGLE) {
+			angleInc = false;
+		}
+	} else {
+		camel.angle -= ANGLE_CHANGE;
+		if (camel.angle <= MIN_ANGLE) {
+			angleInc = true;
+		}
+	}
+
+	float angleInRads = camel.angle * TO_RAD;
+
+	camel.x += CAMEL_MOVE * sin(angleInRads);
+	camel.z += CAMEL_MOVE * cos(angleInRads);
+
+	// TODO remove debug
+	cout << angleInc << " " << camel.angle << "\n";
+}
+
 void timer(int value) {
 	moveDoors();
+	moveCamel();
+	moveCamelLegs();
 
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
