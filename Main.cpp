@@ -33,12 +33,13 @@ struct MovingObject {
 	float y;
 	float z;
 	float angle;
-} cam, camel;
+} cam, camel, beetle;
 
-struct CamelLeg {
+struct Leg {
 	bool increasing = false;
 	float angle = 0;
-} clFrontLeft, clFrontRight, clBackLeft, clBackRight;
+} clFrontLeft, clFrontRight, clBackLeft, clBackRight,
+  blFrontLeft, blFrontRight, blMiddleLeft, blMiddleRight, blBackLeft, blBackRight;
 
 /*
 class Mesh {
@@ -210,8 +211,10 @@ void drawSkybox(){
 	glDisable(GL_TEXTURE_2D);
 }
 
-//----------draw a floor plane-------------------
-void drawFloor() {
+/**
+ * Draws the ground (textured to look like sand).
+ */
+void drawGround() {
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texId[SAND]);
@@ -497,7 +500,7 @@ void drawEye() {
 	glPopMatrix();
 }
 
-void drawCamelLeg(CamelLeg* camelLeg) {
+void drawCamelLeg(Leg* camelLeg) {
 	glScalef(1.5, 1, 1.5);
 
 	glTranslatef(0, 5, 0);
@@ -635,6 +638,89 @@ void drawCamel() {
 	glColor4fv(WHITE);
 }
 
+void drawBeetleLeg(Leg* beetleLeg) {
+	glColor4f(0.715, 0.105, 0, 1);
+
+	//glTranslatef(0.75, 0, 0);
+	glRotatef(beetleLeg->angle, 0, 1, 0);
+	//glTranslatef(-0.75, 0, 0);
+
+	// upper leg
+	glPushMatrix();
+		glScalef(1.5, 0.3, 0.3);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// lower leg
+	glPushMatrix();
+		glTranslatef(0.6, 0, 0.6);
+		glScalef(0.3, 0.3, 1);
+		glutSolidCube(1);
+	glPopMatrix();
+}
+
+void drawBeetle() {
+	glColor4f(0.05, 0.05, 0.05, 1);
+
+	// abdomen
+	glPushMatrix();
+		glScalef(1.55, 1, 2.5);
+		glutSolidCube(1);
+	glPopMatrix();
+
+	// head
+	glPushMatrix();
+		glTranslatef(0, 0, 1.5);
+		glScalef(1, 0.75, 0.5);
+		glRotatef(-90, 1, 0, 0);
+		glutSolidCylinder(1, 1, 16, 16);
+	glPopMatrix();
+
+	// LEGS //
+	// front left
+	glPushMatrix();
+		glTranslatef(0.7, -0.3, 0.85);
+		drawBeetleLeg(&blFrontLeft);
+	glPopMatrix();
+
+	// front right
+	glPushMatrix();
+		glTranslatef(-0.7, -0.3, 0.85);
+		glScalef(-1, 1, 1);
+		drawBeetleLeg(&blFrontRight);
+	glPopMatrix();
+
+	// middle left
+	glPushMatrix();
+		glTranslatef(1.2, -0.3, 0);
+		glScalef(1, 1, -1);
+		drawBeetleLeg(&blMiddleLeft);
+	glPopMatrix();
+
+	// middle right
+	glPushMatrix();
+		glTranslatef(-1.2, -0.3, 0);
+		glScalef(-1, 1, -1);
+		drawBeetleLeg(&blMiddleRight);
+	glPopMatrix();
+
+	// back left
+	glPushMatrix();
+		glTranslatef(0.7, -0.3, -0.85);
+		glScalef(1, 1, -1);
+		drawBeetleLeg(&blBackLeft);
+	glPopMatrix();
+
+	// back right
+	glPushMatrix();
+		glTranslatef(-0.7, -0.3, -0.85);
+		glScalef(-1, 1, -1);
+		drawBeetleLeg(&blBackRight);
+	glPopMatrix();
+
+	glColor4fv(WHITE);
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
@@ -665,7 +751,7 @@ void display() {
 	glPopMatrix();
 
 	glPushMatrix();
-		drawFloor();
+		drawGround();
 	glPopMatrix();
 
 	glDisable(GL_LIGHTING);
@@ -686,6 +772,12 @@ void display() {
 		glTranslatef(camel.x, camel.y, camel.z);
 		glRotatef(camel.angle, 0, 1, 0);
 		drawCamel();
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(beetle.x, beetle.y, beetle.z);
+		glRotatef(beetle.angle, 0, 1, 0);
+		drawBeetle();
 	glPopMatrix();
 
 	glFlush();
@@ -723,15 +815,26 @@ void initialize() {
 	cam.z = -250;
 	cam.angle = 45.0*TO_RAD
 
-	// Set camel's initial position & angle
-	camel.x = 0;
+	// Set camel's initial position
+	camel.x = -90;
 	camel.y = 15;
-	camel.z = -200;
-	camel.angle = -90;
+	camel.z = -150;
 
 	// Setup camel legs to swing alternately
 	clFrontLeft.increasing = true;
 	clBackRight.increasing = true;
+
+	// Set beetle's initial position & angle
+	beetle.x = 0;
+	beetle.y = 1;
+	beetle.z = -200;
+	beetle.angle = 0;
+
+	// Setup beetle legs to swing alternately
+	blFrontLeft.increasing = true;
+	blMiddleLeft.increasing = true;
+	blFrontRight.increasing = true;
+	blMiddleRight.increasing = true;
 }
 
 void special(int key, int x, int y) {
@@ -818,8 +921,8 @@ void moveCamelLegs() {
 	const float LEG_ANGLE_LOWER = -14, LEG_ANGLE_UPPER = 14;
 	const float LEG_ANGLE_CHANGE = 2;
 
-	CamelLeg* legs[4] = {&clFrontLeft, &clFrontRight, &clBackLeft, &clBackRight};
-	CamelLeg* leg;
+	Leg* legs[4] = {&clFrontLeft, &clFrontRight, &clBackLeft, &clBackRight};
+	Leg* leg;
 
 	for (int i = 0; i < 4; i++) {
 		leg = legs[i];
@@ -862,10 +965,49 @@ void moveCamel() {
 	cout << time << " " << camel.angle << "\n";
 }
 
+void moveBeetleLegs() {
+	const float LEG_ANGLE_LOWER = -14, LEG_ANGLE_UPPER = 14;
+	const float LEG_ANGLE_CHANGE = 4;
+
+	Leg* legs[6] = {&blFrontLeft, &blFrontRight, &blMiddleLeft, &blMiddleRight, &blBackLeft, &blBackRight};
+	Leg* leg;
+
+	for (int i = 0; i < 6; i++) {
+		leg = legs[i];
+		if (leg->increasing) {
+			if (leg->angle < LEG_ANGLE_UPPER) {
+				leg->angle += LEG_ANGLE_CHANGE;
+			} else {
+				leg->increasing = false;
+			}
+		} else {
+			if (leg->angle > LEG_ANGLE_LOWER) {
+				leg->angle -= LEG_ANGLE_CHANGE;
+			} else {
+				leg->increasing = true;
+			}
+		}
+	}
+}
+
+void moveBeetle() {
+	const float BEETLE_MOVE = 0.2;
+	const float ANGLE_INC = 2;
+
+	beetle.angle += ANGLE_INC;
+
+	float angleInRads = beetle.angle * TO_RAD;
+	beetle.x += BEETLE_MOVE * sin(angleInRads);
+	beetle.z += BEETLE_MOVE * cos(angleInRads);
+
+}
+
 void timer(int value) {
 	moveDoors();
 	moveCamel();
 	moveCamelLegs();
+	moveBeetle();
+	moveBeetleLegs();
 
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
