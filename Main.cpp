@@ -445,25 +445,25 @@ void drawCompletePyramid() {
 
 	// Left Door
 	glPushMatrix();
-		glTranslatef(1.35+0.001, 0.5-0.001, -0.2);
+		glTranslatef(1.35+0.001, 0.5-0.001, -0.235);
 		glScalef(-1, 1, 1);
 		drawDoor();
 	glPopMatrix();
 
 	// Right Door
 	glPushMatrix();
-		glTranslatef(1.65-0.001, 0.5-0.001, -0.2);
+		glTranslatef(1.65-0.001, 0.5-0.001, -0.235);
 		drawDoor();
 	glPopMatrix();
 
-	/*
+	// Interior (dark)
 	glPushMatrix();
 		glDisable(GL_LIGHT0);
-		glScalef(0.99, 0.99, 0.99);
+		glTranslatef(0.03, 0, 0.01);
+		glScalef(0.98, 0.98, 0.98);
 		drawPyramid();
 		glEnable(GL_LIGHT0);
 	glPopMatrix();
-	*/
 
 	drawPyramidion();
 	drawPyramid();
