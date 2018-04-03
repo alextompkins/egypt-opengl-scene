@@ -33,7 +33,7 @@ struct MovingObject {
 	float y;
 	float z;
 	float angle;
-} cam, camel, beetle;
+} cam, camel, beetle, bowl;
 
 struct Leg {
 	bool increasing = false;
@@ -68,8 +68,8 @@ class Mesh {
 // GLOBALS //
 bool charCamEnabled = false;
 
-GLuint texId[8];
-enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK };
+GLuint texId[9];
+enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK, CHECKER };
 
 float atan_degrees_360(float opp, float adj) {
 	if (adj == 0) {
@@ -88,7 +88,7 @@ float atan_degrees_360(float opp, float adj) {
 }
 
 void loadGLTextures() {			// Load bitmaps And Convert To Textures
-	glGenTextures(7, texId); 		// Create texture ids
+	glGenTextures(9, texId); 		// Create texture ids
 	// *** left ***
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
 	loadTGA("textures/skybox/left.tga");
@@ -144,6 +144,11 @@ void loadGLTextures() {			// Load bitmaps And Convert To Textures
 
 	glBindTexture(GL_TEXTURE_2D, texId[SANDSTONE_BRICK]);
 	loadTGA("textures/sandstone_brick.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+	glBindTexture(GL_TEXTURE_2D, texId[CHECKER]);
+	loadTGA("textures/checker.tga");
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 }
@@ -245,14 +250,33 @@ void drawGround() {
 
 	glBegin(GL_QUADS);
 	glNormal3f(0, 1, 0);
-	for(int x = -400; x <= 400; x += 20)
-	{
-		for(int z = -400; z <= 400; z += 20)
-		{
+	for (int x = -400; x <= 400; x += 20) {
+		for (int z = -400; z <= 400; z += 20) {
 			glTexCoord2f(0.0, 0.0); glVertex3f(x, 0, z);
 			glTexCoord2f(0.0, 1.0); glVertex3f(x, 0, z+20);
 			glTexCoord2f(1.0, 1.0); glVertex3f(x+20, 0, z+20);
 			glTexCoord2f(1.0, 0.0); glVertex3f(x+20, 0, z);
+		}
+	}
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
+void drawFloor() {
+	const int MIN = -75, MAX = 75, INC = 15;
+	
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texId[CHECKER]);
+
+	glBegin(GL_QUADS);
+	glNormal3f(0, 1, 0);
+	for (int x = MIN; x < MAX; x += INC) {
+		for (int z = MIN; z < MAX; z += INC) {
+			glTexCoord2f(0.0, 0.0); glVertex3f(x, 0, z);
+			glTexCoord2f(0.0, 1.0); glVertex3f(x, 0, z+INC);
+			glTexCoord2f(1.0, 1.0); glVertex3f(x+INC, 0, z+INC);
+			glTexCoord2f(1.0, 0.0); glVertex3f(x+INC, 0, z);
 		}
 	}
 	glEnd();
@@ -754,6 +778,42 @@ void drawBeetle() {
 	glColor4fv(WHITE);
 }
 
+void drawBowl() {
+	const float ROT_ANGLE = 10*TO_RAD;
+	const int N = 50;
+	Vertex v[N];
+	Vertex w[N];
+
+	for (int i = 0; i < N; i++) {
+		v[i].y = i*0.25;
+		v[i].x = sqrt(v[i].y);
+		v[i].z = 0;
+	}
+
+	for (int j = 0; j < 36; j++) {
+		glBegin(GL_TRIANGLE_STRIP);
+		for (int i = 0; i < N; i++) {
+			w[i].x = v[i].x*cos(ROT_ANGLE) + v[i].z*sin(ROT_ANGLE);
+			w[i].y = v[i].y;
+			w[i].z = -v[i].x*sin(ROT_ANGLE) + v[i].z*cos(ROT_ANGLE);
+
+			if (i > 0) {
+				normal(&w[i-1], &v[i-1], &v[i], false);
+			}
+			vertex(&v[i]);
+			if (i > 0) {
+				normal(&w[i-1], &v[i], &w[i], false);
+			}
+			vertex(&w[i]);
+
+			v[i].x = w[i].x;
+			v[i].y = w[i].y;
+			v[i].z = w[i].z;
+		}
+		glEnd();
+	}
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
@@ -787,6 +847,13 @@ void display() {
 		drawGround();
 	glPopMatrix();
 
+	glPushMatrix();
+		glDisable(GL_LIGHT0);
+		glTranslatef(100, 0.02, -100);
+		drawFloor();
+		glEnable(GL_LIGHT0);
+	glPopMatrix();
+
 	glDisable(GL_LIGHTING);
 	glPushMatrix();
 		glColor4f(0.15, 0.15, 0.15, 1.0);
@@ -811,6 +878,12 @@ void display() {
 		glTranslatef(beetle.x, beetle.y, beetle.z);
 		glRotatef(beetle.angle, 0, 1, 0);
 		drawBeetle();
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(bowl.x, bowl.y, bowl.z);
+		glRotatef(bowl.angle, 0, 1, 0);
+		drawBowl();
 	glPopMatrix();
 
 	glFlush();
@@ -858,9 +931,9 @@ void initialize() {
 	clBackRight.increasing = true;
 
 	// Set beetle's initial position & angle
-	beetle.x = 0;
+	beetle.x = 100;
 	beetle.y = 1;
-	beetle.z = -200;
+	beetle.z = -100;
 	beetle.angle = 0;
 
 	// Setup beetle legs to swing alternately
@@ -868,6 +941,12 @@ void initialize() {
 	blMiddleLeft.increasing = true;
 	blFrontRight.increasing = true;
 	blMiddleRight.increasing = true;
+
+	// Set bowl's initial position & angle
+	bowl.x = 0;
+	bowl.y = 15;
+	bowl.z = -200;
+	bowl.angle = 90;
 }
 
 bool camWithinDoorway() {
@@ -1047,7 +1126,7 @@ void moveBeetleLegs() {
 }
 
 void moveBeetle() {
-	const float BEETLE_MOVE = 0.2;
+	const float BEETLE_MOVE = 0.5;
 	const float ANGLE_INC = 2;
 
 	beetle.angle += ANGLE_INC;
