@@ -1,7 +1,5 @@
 #include <iostream>
-#include <fstream>
-#include <climits>
-#include <math.h>
+#include <cmath>
 #include <GL/freeglut.h>
 #include "loadTGA.h"
 using namespace std;
@@ -134,59 +132,10 @@ void loadGLTextures()				// Load bitmaps And Convert To Textures
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 }
 
-/*
-//-- Loads mesh data in OFF format    -------------------------------------
-void loadMeshFile(const char* fname) {
-	ifstream fp_in;
-	int num, ne;
-
-	fp_in.open(fname, ios::in);
-	if(!fp_in.is_open())
-	{
-		cout << "Error opening mesh file" << endl;
-		exit(1);
-	}
-
-	fp_in.ignore(INT_MAX, '\n');				//ignore first line
-	fp_in >> nvrt >> ntri >> ne;			    // read number of vertices, polygons, edges
-
-	x = new float[nvrt];                        //create arrays
-	y = new float[nvrt];
-	z = new float[nvrt];
-
-	t1 = new int[ntri];
-	t2 = new int[ntri];
-	t3 = new int[ntri];
-
-	for(int i=0; i < nvrt; i++)                         //read vertex list
-		fp_in >> x[i] >> y[i] >> z[i];
-
-	for(int i=0; i < ntri; i++)                         //read polygon list
-	{
-		fp_in >> num >> t1[i] >> t2[i] >> t3[i];
-		if(num != 3)
-		{
-			cout << "ERROR: Polygon with index " << i  << " is not a triangle." << endl;  //not a triangle!!
-			exit(1);
-		}
-	}
-
-	fp_in.close();
-	cout << " File successfully read." << endl;
-}
-*/
-
-//--Function to compute the normal vector of a triangle from the given points ----------
-void normal(float x1, float y1, float z1,
-			float x2, float y2, float z2,
-			float x3, float y3, float z3) {
-	float nx, ny, nz;
-	nx = y1*(z2-z3) + y2*(z3-z1) + y3*(z1-z2);
-	ny = z1*(x2-x3) + z2*(x3-x1) + z3*(x1-x2);
-	nz = x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2);
-	glNormal3f(-nx, -ny, -nz);
-}
-
+/**
+ * Function to compute the normal vector of a triangle from the given vertices
+ * @param v1, v2, v3 the three vertices of the triangle
+ */
 void normal(Vertex *v1, Vertex *v2, Vertex *v3) {
 	float x1 = v1->x, y1 = v1->y, z1 = v1->z;
 	float x2 = v2->x, y2 = v2->y, z2 = v2->z;
@@ -207,8 +156,8 @@ void drawSkybox(){
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(1.0, 0.0); glVertex3f(-1000,  0, 1000);
-		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0., -1000);
-		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 1000., -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0, -1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 1000, -1000);
 		glTexCoord2f(1.0, 1.0); glVertex3f(-1000, 1000, 1000);
 	glEnd();
 
@@ -216,7 +165,7 @@ void drawSkybox(){
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_FRONT]);
 	glBegin(GL_QUADS);
 		glTexCoord2f(1.0, 0.0); glVertex3f(-1000,  0, -1000);
-		glTexCoord2f(0.0, 0.0); glVertex3f(1000, 0., -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(1000, 0, -1000);
 		glTexCoord2f(0.0, 1.0); glVertex3f(1000, 1000, -1000);
 		glTexCoord2f(1.0, 1.0); glVertex3f(-1000,  1000, -1000);
 	glEnd();
@@ -252,10 +201,10 @@ void drawSkybox(){
 	/////////////////////// FLOOR //////////////////////////
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_BOTTOM]);
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0., 1000);
-		glTexCoord2f(1.0, 0.0); glVertex3f(1000, 0.,  1000);
-		glTexCoord2f(1.0, 1.0); glVertex3f(1000, 0., -1000);
-		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 0., -1000);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-1000, 0, 1000);
+		glTexCoord2f(1.0, 0.0); glVertex3f(1000, 0,  1000);
+		glTexCoord2f(1.0, 1.0); glVertex3f(1000, 0, -1000);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-1000, 0, -1000);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -816,11 +765,7 @@ void special(int key, int x, int y) {
 			}
 			break;
 		case GLUT_KEY_F1:
-			if (charCamEnabled) {
-				charCamEnabled = false;
-			} else {
-				charCamEnabled = true;
-			}
+			charCamEnabled = !charCamEnabled;
 			break;
 	}
 
