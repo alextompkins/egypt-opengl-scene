@@ -71,8 +71,23 @@ bool charCamEnabled = false;
 GLuint texId[8];
 enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK };
 
-void loadGLTextures()				// Load bitmaps And Convert To Textures
-{
+float atan_degrees_360(float opp, float adj) {
+	if (adj == 0) {
+		if (opp > 0) {
+			return 90;
+		} else {
+			return -90;
+		}
+	} else {
+		if (adj >= 0) {
+			return atan(opp/adj) / TO_RAD;
+		} else {
+			return 180 + atan(opp/adj) / TO_RAD;
+		}
+	}
+}
+
+void loadGLTextures() {			// Load bitmaps And Convert To Textures
 	glGenTextures(7, texId); 		// Create texture ids
 	// *** left ***
 	glBindTexture(GL_TEXTURE_2D, texId[SKYBOX_LEFT]);
@@ -816,9 +831,9 @@ void initialize() {
 	cam.angle = 45.0*TO_RAD
 
 	// Set camel's initial position
-	camel.x = -90;
+	camel.x = 0;
 	camel.y = 15;
-	camel.z = -150;
+	camel.z = -220;
 
 	// Setup camel legs to swing alternately
 	clFrontLeft.increasing = true;
@@ -837,12 +852,28 @@ void initialize() {
 	blMiddleRight.increasing = true;
 }
 
+/*
+void changeCamX(float amount) {
+	const float PYRAMID_BACK_X = 0, PYRAMID_FRONT_X = 0, PYRAMID_LEFT_Z = 0, PYRAMID_RIGHT_Z = 0;
+
+	if (cam.x >= );
+}
+
+void changeCamZ(float amount) {
+	const float bound_z_lower = -14.0, bound_z_upper = 14.0;
+
+	if (cam.z + amount >= bound_z_lower && cam.z + amount <= bound_z_upper) {
+		cam.z += amount;
+	}
+}
+*/
+
 void special(int key, int x, int y) {
 	const float CHANGE_VIEW_ANGLE = 2.0;
 	const float MOVE_DISTANCE = 2.0;
 
 	// TODO remove debug
-	//cout << cam.x << " " << cam.z << "\n";
+	cout << cam.x << " " << cam.z << "\n";
 
 	switch (key) {
 		case GLUT_KEY_LEFT:
@@ -952,17 +983,11 @@ void moveCamel() {
 
 	x_change = sin(time);
 	z_change = cos(2*time);
-	angle = atan(x_change/z_change) / TO_RAD
-	/*if (angle < 0) {
-		angle = 180 - angle;
-	}*/
+	angle = atan_degrees_360(x_change, z_change);
 
 	camel.x += CAMEL_MOVE * x_change;
 	camel.z += CAMEL_MOVE * z_change;
 	camel.angle = angle;
-
-	// TODO remove debug
-	cout << time << " " << camel.angle << "\n";
 }
 
 void moveBeetleLegs() {
