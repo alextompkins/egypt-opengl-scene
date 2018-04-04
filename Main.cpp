@@ -68,6 +68,7 @@ class Mesh {
 
 // GLOBALS //
 bool charCamEnabled = false;
+bool light1Enabled = true;
 
 GLuint texId[9];
 enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK, CHECKER };
@@ -492,7 +493,9 @@ void drawCompletePyramid() {
 
 	// ALL THE FOLLOWING OBJECTS ARE LIT BY LIGHT1, BUT NOT LIGHT0 //
 	glDisable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	if (light1Enabled) {
+		glEnable(GL_LIGHT1);
+	}
 
 	// Interior (not lit by light0)
 	glPushMatrix();
@@ -826,7 +829,7 @@ void drawMummy() {
 			  INC = 1, SLICES = 32, STACKS = 32;
 	const float BROWN[4] = {0.5, 0.3, 0.1, 1}, YELLOW[4] = {0.675, 0.566, 0.324, 1};
 
-	const float spotPos[] = {0, 1.5, 0, 1},
+	const float spotPos[] = {0, 3, 0, 1},
 				spotDir[] = {0, 1, 0};
 
 	bool altColour = false;
@@ -892,6 +895,55 @@ void drawMummy() {
 	glColor4fv(WHITE);
 }
 
+void drawCoffin() {
+	const float HEIGHT = 10;
+
+	Vertex v[6] = {0}, w[6] = {0};
+	v[0] = {7.5, 0, -25};
+	v[1] = {10, 0, 0};
+	v[2] = {8, 0, 30};
+	v[3] = {-8, 0, 30};
+	v[4] = {-10, 0, 0};
+	v[5] = {-7.5, 0, -25};
+
+	for (int i = 0; i < 6; i++) {
+		w[i].x = v[i].x;
+		w[i].y = HEIGHT;
+		w[i].z = v[i].z;
+	}
+
+	glColor4fv(GOLD);
+	glBegin(GL_TRIANGLE_STRIP);
+		for (int i = 0; i < 6; i++) {
+			if (i > 0) {
+				normal(&w[i-1], &v[i-1], &v[i], false);
+			}
+			vertex(&v[i]);
+			if (i > 0) {
+				normal(&w[i-1], &v[i], &w[i], false);
+			}
+			vertex(&w[i]);
+		}
+		vertex(&v[0]);
+		vertex(&w[0]);
+	glEnd();
+
+	glBegin(GL_QUADS);
+		normal(&v[0], &v[1], &v[4], false);
+		vertex(&v[0]);
+		vertex(&v[1]);
+		vertex(&v[4]);
+		vertex(&v[5]);
+
+		normal(&v[1], &v[2], &v[3], false);
+		vertex(&v[1]);
+		vertex(&v[2]);
+		vertex(&v[3]);
+		vertex(&v[4]);
+	glEnd();
+	glColor4fv(WHITE);
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
@@ -951,7 +1003,9 @@ void display() {
 
 	// ALL THE FOLLOWING OBJECTS ARE LIT BY LIGHT1, BUT NOT LIGHT0 //
 	glDisable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	if (light1Enabled) {
+		glEnable(GL_LIGHT1);
+	}
 
 	glPushMatrix();
 		glTranslatef(100, 0.02, -100);
@@ -971,9 +1025,15 @@ void display() {
 	glPopMatrix();
 
 	glPushMatrix();
-		glTranslatef(100, 4, -100);
+		glTranslatef(130, 4, -100);
 		glRotatef(90, 0, 1, 0);
 		drawMummy();
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(130, 0.05, -100);
+		glRotatef(90, 0, 1, 0);
+		drawCoffin();
 	glPopMatrix();
 
 	// NORMAL LIGHTING //
@@ -1031,7 +1091,7 @@ void initialize() {
 	clBackRight.increasing = true;
 
 	// Set beetle's initial position & angle
-	beetle.x = 100;
+	beetle.x = 70;
 	beetle.y = 1;
 	beetle.z = -100;
 	beetle.angle = 0;
@@ -1107,6 +1167,9 @@ void special(int key, int x, int y) {
 			break;
 		case GLUT_KEY_F1:
 			charCamEnabled = !charCamEnabled;
+			break;
+		case GLUT_KEY_F2:
+			light1Enabled = !light1Enabled;
 			break;
 	}
 
