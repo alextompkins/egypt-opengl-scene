@@ -9,10 +9,12 @@ using namespace std;
 #define GL_CLAMP_TO_EDGE 0x812F   //To get rid of seams between textures
 #define TO_RAD (3.14159265/180.0);  //Conversion from degrees to radians
 
-const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
-const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
-const float BLACK[4] = {0.0, 0.0, 0.0, 1.0};
-const float GOLD[4] = {0.8, 0.7, 0.3, 1};
+const float GREY[4] = {0.2, 0.2, 0.2, 1.0},
+			WHITE[4]  = {1.0, 1.0, 1.0, 1.0},
+			BLACK[4] = {0.0, 0.0, 0.0, 1.0},
+			GOLD[4] = {0.8, 0.7, 0.3, 1},
+			BROWN[4] = {0.5, 0.3, 0.1, 1},
+			YELLOW[4] = {0.675, 0.566, 0.324, 1};
 
 // STRUCTS //
 
@@ -789,7 +791,7 @@ void drawBeetle() {
 }
 
 void drawBowl() {
-	const float ROTATIONS = 72, COLOUR_INC = 0.01;
+	const float ROTATIONS = 144, COLOUR_INC = 0.005;
 	const float ROT_ANGLE = (360/ROTATIONS) * TO_RAD;
 	const int N = 50;
 	Vertex v[N];
@@ -834,10 +836,40 @@ void drawBowl() {
 	glColor4fv(WHITE);
 }
 
+void drawPedestal() {
+	const float COL_HEIGHT = 17;
+
+	// base
+	glPushMatrix();
+		glColor4fv(YELLOW);
+		glTranslatef(0, 2-COL_HEIGHT, 0);
+		glRotatef(-90, 1, 0, 0);
+		glutSolidCylinder(1, 2, 32, 32);
+	glPopMatrix();
+
+	// rotating pieces
+	glPushMatrix();
+		glRotatef(bowl.angle, 0, 1, 0);
+
+		// column
+		glPushMatrix();
+			glColor4fv(BROWN);
+			glTranslatef(0, 2-COL_HEIGHT, 0);
+			glRotatef(-90, 1, 0, 0);
+			glutSolidCylinder(0.5, COL_HEIGHT, 32, 32);
+		glPopMatrix();
+
+		// bowl
+		glPushMatrix();
+			drawBowl();
+		glPopMatrix();
+
+	glPopMatrix();
+}
+
 void drawMummy() {
 	const int FEET = -20, WAIST = 0, SHOULDER = 12, HEAD = 15,
 			  INC = 1, SLICES = 32, STACKS = 32;
-	const float BROWN[4] = {0.5, 0.3, 0.1, 1}, YELLOW[4] = {0.675, 0.566, 0.324, 1};
 
 	const float spotPos[] = {0, 3, 0, 1},
 				spotDir[] = {0, 1, 0};
@@ -1029,9 +1061,8 @@ void display() {
 	glPopMatrix();
 
 	glPushMatrix();
-		glTranslatef(bowl.x, bowl.y, bowl.z);
-		glRotatef(bowl.angle, 0, 1, 0);
-		drawBowl();
+		glTranslatef(85, 15, -120);
+		drawPedestal();
 	glPopMatrix();
 
 	glPushMatrix();
@@ -1113,9 +1144,6 @@ void initialize() {
 	blMiddleRight.increasing = true;
 
 	// Set bowl's initial position & angle
-	bowl.x = 0;
-	bowl.y = 15;
-	bowl.z = -200;
 	bowl.angle = 90;
 }
 
@@ -1307,7 +1335,11 @@ void moveBeetle() {
 	float angleInRads = beetle.angle * TO_RAD;
 	beetle.x += BEETLE_MOVE * sin(angleInRads);
 	beetle.z += BEETLE_MOVE * cos(angleInRads);
+}
 
+void moveBowl() {
+	const float ANGLE_INC = 5;
+	bowl.angle += ANGLE_INC;
 }
 
 void moveMummy() {
@@ -1344,6 +1376,7 @@ void timer(int value) {
 	moveCamelLegs();
 	moveBeetle();
 	moveBeetleLegs();
+	moveBowl();
 	moveMummy();
 
 	glutPostRedisplay();
