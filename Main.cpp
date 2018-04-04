@@ -1211,9 +1211,6 @@ void special(int key, int x, int y) {
 			break;
 	}
 
-	// TODO remove debug
-	//cout << "x: " << cam.x << " z: " << cam.z << "\n";
-
 	glutPostRedisplay();
 }
 
