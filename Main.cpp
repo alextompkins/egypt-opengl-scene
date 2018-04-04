@@ -71,6 +71,7 @@ class Mesh {
 // GLOBALS //
 bool charCamEnabled = false;
 bool light1Enabled = true;
+bool mummyPaused = false;
 
 GLuint texId[9];
 enum Texture { SKYBOX_LEFT, SKYBOX_FRONT, SKYBOX_RIGHT, SKYBOX_BACK, SKYBOX_TOP, SKYBOX_BOTTOM, SAND, SANDSTONE_BRICK, CHECKER };
@@ -1209,6 +1210,9 @@ void special(int key, int x, int y) {
 		case GLUT_KEY_F2:
 			light1Enabled = !light1Enabled;
 			break;
+		case GLUT_KEY_F3:
+			mummyPaused = !mummyPaused;
+			break;
 	}
 
 	glutPostRedisplay();
@@ -1359,7 +1363,7 @@ void moveMummy() {
 		}
 	} else {
 		timeWaited++;
-		if (timeWaited >= TIME_TO_WAIT) {
+		if (timeWaited >= TIME_TO_WAIT && !mummyPaused) {
 			timeWaited = 0;
 			moving = true;
 			sittingUp = !sittingUp;
