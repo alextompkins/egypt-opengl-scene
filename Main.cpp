@@ -12,6 +12,7 @@ using namespace std;
 const float GREY[4] = {0.2, 0.2, 0.2, 1.0};
 const float WHITE[4]  = {1.0, 1.0, 1.0, 1.0};
 const float BLACK[4] = {0.0, 0.0, 0.0, 1.0};
+const float GOLD[4] = {0.8, 0.7, 0.3, 1};
 
 // STRUCTS //
 
@@ -33,7 +34,7 @@ struct MovingObject {
 	float y;
 	float z;
 	float angle;
-} cam, camel, beetle, bowl;
+} cam, camel, beetle, bowl, mummy;
 
 struct Leg {
 	bool increasing = false;
@@ -289,7 +290,7 @@ void drawDoor() {
 	glTranslatef(-0.15, 0, 0);
 
 	glPushMatrix();
-		glColor4f(0.8, 0.7, 0.3, 1);
+		glColor4fv(GOLD);
 		glScalef(0.15, 0.5, 0.04);
 		glutSolidCube(1);
 	glPopMatrix();
@@ -439,7 +440,7 @@ void drawPyramidion() {
 	v[3] = {2, 2, 2};
 	v[4] = {2, 2, 1};
 
-	glColor4f(0.8, 0.7, 0.3, 1);
+	glColor4fv(GOLD);
 	glBegin(GL_TRIANGLES);
 	
 	// left face
@@ -467,7 +468,7 @@ void drawPyramidion() {
 	glVertex3f(v[4].x, v[4].y, v[4].z);
 	
 	glEnd();
-	glColor4f(1, 1, 1, 1);
+	glColor4fv(WHITE);
 }
 
 void drawCompletePyramid() {
@@ -489,14 +490,20 @@ void drawCompletePyramid() {
 		drawDoor();
 	glPopMatrix();
 
-	// Interior (dark)
+	// ALL THE FOLLOWING OBJECTS ARE LIT BY LIGHT1, BUT NOT LIGHT0 //
+	glDisable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+
+	// Interior (not lit by light0)
 	glPushMatrix();
-		glDisable(GL_LIGHT0);
 		glTranslatef(0.03, 0, 0.01);
 		glScalef(0.98, 0.98, 0.98);
 		drawPyramid(true);
-		glEnable(GL_LIGHT0);
 	glPopMatrix();
+
+	// NORMAL LIGHTING //
+	glDisable(GL_LIGHT1);
+	glEnable(GL_LIGHT0);
 
 	drawPyramidion();
 	drawPyramid(false);
@@ -814,6 +821,77 @@ void drawBowl() {
 	}
 }
 
+void drawMummy() {
+	const int FEET = -20, WAIST = 0, SHOULDER = 12, HEAD = 15,
+			  INC = 1, SLICES = 32, STACKS = 32;
+	const float BROWN[4] = {0.5, 0.3, 0.1, 1}, YELLOW[4] = {0.675, 0.566, 0.324, 1};
+
+	const float spotPos[] = {0, 1.5, 0, 1},
+				spotDir[] = {0, 1, 0};
+
+	bool altColour = false;
+
+	// legs
+	glPushMatrix();
+		glScalef(1, 0.8, 1);
+		for (int offset = FEET; offset < WAIST; offset += INC) {
+			glPushMatrix();
+				if (altColour) {
+					glColor4fv(YELLOW);
+				} else {
+					glColor4fv(BROWN);
+				}
+				glTranslatef(0, 0, offset);
+				glutSolidCylinder(5, INC, SLICES, STACKS);
+
+				altColour = !altColour;
+			glPopMatrix();
+		}
+	glPopMatrix();
+
+	// upper body
+	glPushMatrix();
+		glRotatef(-mummy.angle, 1, 0, 0);
+		glScalef(1, 0.8, 1.5);
+
+		// torso
+		glPushMatrix();
+			for (int offset = WAIST; offset < SHOULDER; offset += INC) {
+				glPushMatrix();
+					if (altColour) {
+						glColor4fv(YELLOW);
+					} else {
+						glColor4fv(BROWN);
+					}
+					glTranslatef(0, 0, offset);
+					glutSolidCylinder(6.5, INC, SLICES, STACKS);
+
+					altColour = !altColour;
+				glPopMatrix();
+			}
+		glPopMatrix();
+
+		// head
+		glPushMatrix();
+			glTranslatef(0, 0, HEAD);
+
+			// eye spotlight
+			glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spotDir);
+			glLightfv(GL_LIGHT1, GL_POSITION, spotPos);
+
+			// head objectF
+			glPushMatrix();
+				glColor4fv(BROWN);
+				glScalef(1, 1.5, 1);
+				glutSolidSphere(4, SLICES, STACKS);
+			glPopMatrix();
+		glPopMatrix();
+
+	glPopMatrix();
+
+	glColor4fv(WHITE);
+}
+
 //--Display: ----------------------------------------------------------------------
 //--This is the main display module containing function calls for generating
 //--the scene.
@@ -843,17 +921,6 @@ void display() {
 		drawSkybox();
 	glPopMatrix();
 
-	glPushMatrix();
-		drawGround();
-	glPopMatrix();
-
-	glPushMatrix();
-		glDisable(GL_LIGHT0);
-		glTranslatef(100, 0.02, -100);
-		drawFloor();
-		glEnable(GL_LIGHT0);
-	glPopMatrix();
-
 	glDisable(GL_LIGHTING);
 	glPushMatrix();
 		glColor4f(0.15, 0.15, 0.15, 1.0);
@@ -864,6 +931,14 @@ void display() {
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
 
+	// NORMAL LIGHTING //
+	glDisable(GL_LIGHT1);
+	glEnable(GL_LIGHT0);
+
+	glPushMatrix();
+		drawGround();
+	glPopMatrix();
+
 	glPushMatrix();
 		drawCompletePyramid();
 	glPopMatrix();
@@ -872,6 +947,15 @@ void display() {
 		glTranslatef(camel.x, camel.y, camel.z);
 		glRotatef(camel.angle, 0, 1, 0);
 		drawCamel();
+	glPopMatrix();
+
+	// ALL THE FOLLOWING OBJECTS ARE LIT BY LIGHT1, BUT NOT LIGHT0 //
+	glDisable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+
+	glPushMatrix();
+		glTranslatef(100, 0.02, -100);
+		drawFloor();
 	glPopMatrix();
 
 	glPushMatrix();
@@ -885,6 +969,16 @@ void display() {
 		glRotatef(bowl.angle, 0, 1, 0);
 		drawBowl();
 	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(100, 4, -100);
+		glRotatef(90, 0, 1, 0);
+		drawMummy();
+	glPopMatrix();
+
+	// NORMAL LIGHTING //
+	glDisable(GL_LIGHT1);
+	glEnable(GL_LIGHT0);
 
 	glFlush();
 }
@@ -905,6 +999,12 @@ void initialize() {
 	glLightfv(GL_LIGHT0, GL_AMBIENT, GREY);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, WHITE);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, WHITE);
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, GREY);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, WHITE);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, WHITE);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 0.01);
 
 	glClearColor(0, 0, 0, 0);	//Background colour
 
@@ -1137,12 +1237,41 @@ void moveBeetle() {
 
 }
 
+void moveMummy() {
+	const float ANGLE_INC = 2, MIN_ANGLE = 0, MAX_ANGLE = 80, TIME_TO_WAIT = 150;
+
+	static bool moving = false, sittingUp = false;
+	static int timeWaited = 0;
+
+	if (moving) {
+		if (sittingUp) {
+			mummy.angle += ANGLE_INC;
+			if (mummy.angle >= MAX_ANGLE) {
+				moving = false;
+			}
+		} else {
+			mummy.angle -= ANGLE_INC;
+			if (mummy.angle <= MIN_ANGLE) {
+				moving = false;
+			}
+		}
+	} else {
+		timeWaited++;
+		if (timeWaited >= TIME_TO_WAIT) {
+			timeWaited = 0;
+			moving = true;
+			sittingUp = !sittingUp;
+		}
+	}
+}
+
 void timer(int value) {
 	moveDoors();
 	moveCamel();
 	moveCamelLegs();
 	moveBeetle();
 	moveBeetleLegs();
+	moveMummy();
 
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
