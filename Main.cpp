@@ -789,10 +789,12 @@ void drawBeetle() {
 }
 
 void drawBowl() {
-	const float ROT_ANGLE = 10*TO_RAD;
+	const float ROTATIONS = 72, COLOUR_INC = 0.01;
+	const float ROT_ANGLE = (360/ROTATIONS) * TO_RAD;
 	const int N = 50;
 	Vertex v[N];
 	Vertex w[N];
+	float colourAdd;
 
 	for (int i = 0; i < N; i++) {
 		v[i].y = i*0.25;
@@ -800,7 +802,13 @@ void drawBowl() {
 		v[i].z = 0;
 	}
 
-	for (int j = 0; j < 36; j++) {
+	for (int j = 0; j < ROTATIONS; j++) {
+		if (j >= ROTATIONS/2) {
+			colourAdd = (ROTATIONS-j) * COLOUR_INC;
+		} else {
+			colourAdd = j * COLOUR_INC;
+		}
+		glColor4f(0.25, 0.1875 + colourAdd, 0.6, 1);
 		glBegin(GL_TRIANGLE_STRIP);
 		for (int i = 0; i < N; i++) {
 			w[i].x = v[i].x*cos(ROT_ANGLE) + v[i].z*sin(ROT_ANGLE);
@@ -808,7 +816,7 @@ void drawBowl() {
 			w[i].z = -v[i].x*sin(ROT_ANGLE) + v[i].z*cos(ROT_ANGLE);
 
 			if (i > 0) {
-				normal(&w[i-1], &v[i-1], &v[i], false);
+				normal(&w[i], &v[i-1], &v[i], false);
 			}
 			vertex(&v[i]);
 			if (i > 0) {
@@ -822,6 +830,8 @@ void drawBowl() {
 		}
 		glEnd();
 	}
+
+	glColor4fv(WHITE);
 }
 
 void drawMummy() {
