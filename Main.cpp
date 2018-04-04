@@ -810,7 +810,7 @@ void drawBowl() {
 		} else {
 			colourAdd = j * COLOUR_INC;
 		}
-		glColor4f(0.25, 0.1875 + colourAdd, 0.6, 1);
+		glColor4f(0.25, 0.1875 + colourAdd, 0.6 - colourAdd, 1);
 		glBegin(GL_TRIANGLE_STRIP);
 		for (int i = 0; i < N; i++) {
 			w[i].x = v[i].x*cos(ROT_ANGLE) + v[i].z*sin(ROT_ANGLE);
