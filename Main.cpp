@@ -1390,7 +1390,7 @@ int main(int argc, char** argv) {
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_DEPTH);
 	glutInitWindowSize (1200, 720);
 	glutInitWindowPosition (10, 10);
-	glutCreateWindow ("Egypt (COSC363 Assignment - ato47)");
+	glutCreateWindow ("Egypt");
 	initialize();
 
 	glutSpecialFunc(special);

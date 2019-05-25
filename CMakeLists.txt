@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
-project(cosc363_assignment)
+project(egypt_opengl_scene)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(cosc363_assignment Main.cpp)
+add_executable(egypt_opengl_scene Main.cpp)
 
-target_link_libraries(cosc363_assignment libopengl32.a libglu32.a libfreeglut.a)
+target_link_libraries(egypt_opengl_scene libopengl32.a libglu32.a libfreeglut.a)
